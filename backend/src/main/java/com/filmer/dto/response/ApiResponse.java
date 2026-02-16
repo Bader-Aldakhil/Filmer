@@ -1,7 +1,5 @@
 package com.filmer.dto.response;
 
-import java.time.Instant;
-
 /**
  * Standard API response wrapper for all successful responses.
  * Provides a consistent envelope structure across all endpoints.
