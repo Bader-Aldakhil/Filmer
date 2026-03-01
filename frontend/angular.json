@@ -64,10 +64,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "builds": ["build:production"]
+              "buildTarget": "filmer:build:production"
             },
             "development": {
-              "builds": ["build:development"]
+              "buildTarget": "filmer:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -98,5 +98,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }
