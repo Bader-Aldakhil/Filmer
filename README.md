@@ -402,6 +402,33 @@ cd frontend
 npm test
 ```
 
+### Frontend Unit + E2E (Phase 3)
+
+Run all frontend tests locally from the `frontend/` directory:
+
+```bash
+npm ci
+```
+
+```bash
+# Headless Angular unit tests (non-watch)
+npm test
+```
+
+```bash
+# Install Playwright browser once
+npm run e2e:install
+
+# Run E2E suite
+npm run e2e
+```
+
+Notes:
+- `npm test` runs Karma/Jasmine in headless mode for CI-friendly execution.
+- `npm run e2e` runs Playwright smoke/flow/negative scenarios.
+- E2E assumes backend API is available at `http://localhost:8080` (or mock/intercepted by tests where specified).
+- Keep all sensitive config in environment variables; never commit secrets or keys.
+
 ## Academic Integrity
 
 This project is developed for educational purposes as part of the SWE 481 course at King Saud University, College of Computer and Information Sciences. All work must follow academic integrity policies.
