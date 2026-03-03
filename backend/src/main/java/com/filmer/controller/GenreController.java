@@ -1,9 +1,12 @@
 package com.filmer.controller;
 
+import com.filmer.dto.response.ApiErrorResponse;
 import com.filmer.dto.response.ApiResponse;
 import com.filmer.dto.response.GenreListResponse;
 import com.filmer.dto.response.GenreMoviesResponse;
 import com.filmer.dto.response.GenreResponse;
+import com.filmer.service.GenreService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +19,13 @@ import java.util.Collections;
 @RestController
 @RequestMapping("/api/v1/genres")
 public class GenreController {
+
+    private final GenreService genreService;
+
+    @Autowired
+    public GenreController(GenreService genreService) {
+        this.genreService = genreService;
+    }
 
     /**
      * Get all available genres.
@@ -32,11 +42,8 @@ public class GenreController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse<GenreListResponse>> listGenres() {
-        // TODO: Implement genre listing logic
-        // 1. Query all genres from database
-        // 2. Map entities to DTOs
-        GenreListResponse response = new GenreListResponse(Collections.emptyList());
-        return ResponseEntity.status(501).body(ApiResponse.success(response));
+        GenreListResponse response = genreService.getAllGenres();
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     /**
@@ -72,24 +79,18 @@ public class GenreController {
      * </ul>
      */
     @GetMapping("/{genreId}/movies")
-    public ResponseEntity<ApiResponse<GenreMoviesResponse>> getMoviesByGenre(
+    public ResponseEntity<?> getMoviesByGenre(
             @PathVariable Long genreId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "title") String sortBy,
             @RequestParam(defaultValue = "asc") String order) {
-        // TODO: Implement genre movies retrieval logic
-        // 1. Verify genre exists, return 404 if not
-        // 2. Validate pagination parameters
-        // 3. Query movies by genre with pagination
-        // 4. Map entities to DTOs
-        GenreMoviesResponse response = new GenreMoviesResponse();
-        response.setGenre(new GenreResponse(genreId, "Genre"));
-        response.setItems(Collections.emptyList());
-        response.setPage(page);
-        response.setSize(size);
-        response.setTotalItems(0);
-        response.setTotalPages(0);
-        return ResponseEntity.status(501).body(ApiResponse.success(response));
+        try {
+            GenreMoviesResponse response = genreService.getMoviesByGenre(genreId, page, size, sortBy, order);
+            return ResponseEntity.ok(ApiResponse.success(response));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404)
+                    .body(ApiErrorResponse.of("NOT_FOUND", e.getMessage()));
+        }
     }
 }

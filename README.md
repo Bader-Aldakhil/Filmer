@@ -429,6 +429,45 @@ Notes:
 - E2E assumes backend API is available at `http://localhost:8080` (or mock/intercepted by tests where specified).
 - Keep all sensitive config in environment variables; never commit secrets or keys.
 
+### Backend Unit Tests (Phase 3)
+
+Backend unit tests verify service and controller behavior using JUnit5 + Mockito. Tests are isolated from the real database using mocks.
+
+**Test Coverage:**
+- **Service Tests**: `GenreServiceTest`, `MovieServiceTest` - test business logic with mocked repositories
+- **Controller Tests**: `HealthControllerTest`, `GenreControllerTest` - test HTTP layer with mocked services
+
+**Test Categories:**
+- ✅ Success cases (valid inputs, expected outputs)
+- ✅ Not found / Invalid input cases (404, 400 responses)
+- ✅ Simulated DB exceptions (verify error handling)
+
+**Run Backend Tests:**
+
+```bash
+cd backend
+
+# Run all tests
+mvn test
+
+# Or using Maven wrapper (if available)
+./mvnw test
+
+# Run specific test classes
+mvn test -Dtest="GenreServiceTest,MovieServiceTest,HealthControllerTest,GenreControllerTest"
+```
+
+**Test Results:**
+- Tests run: 36
+- Service tests: 23 (GenreService: 10, MovieService: 13)
+- Controller tests: 13 (HealthController: 5, GenreController: 8)
+
+**Notes:**
+- Tests are designed based on the Phase 2 API specification (see `docs/api-spec.md`)
+- Tests may fail meaningfully until Phase 4 implementation is complete
+- Tests use `@WebMvcTest` for controller slices and `@ExtendWith(MockitoExtension.class)` for services
+- No real database connection is required to run unit tests
+
 ## Academic Integrity
 
 This project is developed for educational purposes as part of the SWE 481 course at King Saud University, College of Computer and Information Sciences. All work must follow academic integrity policies.

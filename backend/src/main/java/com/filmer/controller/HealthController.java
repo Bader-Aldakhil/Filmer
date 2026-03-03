@@ -62,7 +62,10 @@ public class HealthController {
         Map<String, Object> result = healthCheckService.checkDatabaseConnectivity();
         
         // Return 200 if successful, 503 if database is down
-        if ((Boolean) result.get("success")) {
+        Object successValue = result.get("success");
+        boolean isSuccess = Boolean.TRUE.equals(successValue);
+        
+        if (isSuccess) {
             return ResponseEntity.ok(ApiResponse.success(result));
         } else {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
