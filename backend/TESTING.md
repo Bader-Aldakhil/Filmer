@@ -280,12 +280,40 @@ void testSearchMoviesByTitleContract() {
 
 ## Continuous Integration
 
-### GitHub Actions / CI/CD Configuration
+### GitHub Actions / CI Configuration (Phase 3)
+
+We utilize a GitHub Actions workflow (`.github/workflows/tests.yml`) to automatically enforce testing on all Pull Requests to the `main` or `master` branch.
+
+**Workflow Jobs:**
+1. **frontend-tests**: Installs dependencies (`npm ci`) and runs Angular tests (`npm test` in Headless Chrome).
+2. **backend-tests**: Sets up JDK 17, provisions a Testcontainers-compatible PostgreSQL service, and runs `mvn -B test`.
+3. **contract-tests-allowed-to-fail**: Runs the `*ContractTest.java` suite. Currently set to allow failures (`continue-on-error: true`) as these define Phase 4 requirements.
+
+**Transitioning to Required Contract Tests (Phase 4):**
+Before final project submission or during Phase 4 implementation, the contract tests must pass. To enforce this, update `.github/workflows/tests.yml` by removing `continue-on-error: true` from the `contract-tests-allowed-to-fail` job.
 
 ```yaml
-name: Test Suite
+name: Phase 3 CI Tests
 
-on: [push, pull_request]
+on:
+  pull_request:
+    branches: [ "main", "master" ]
+  push:
+    branches: [ "main", "master" ]
+```
+
+## Robustness and Stress Testing (Phase 3)
+
+The backend incorporates simulated stress and failure scenarios to ensure robustness:
+
+### 1. Concurrency Testing
+- **Location**: `src/test/java/com/filmer/integration/controller/ConcurrencyTest.java`
+- **Purpose**: Fires 50+ concurrent requests against `/api/v1/genres` to assert that the application server and database connection pool can handle high load without crashing or dropping requests. All requests expect a 200 OK.
+
+### 2. Simulated Database Failure
+- **Location**: `src/test/java/com/filmer/integration/controller/RobustnessTest.java`
+- **Purpose**: Uses `@MockBean` to simulate throwing a `DataAccessException` from repositories when the database becomes unavailable.
+- **Handling**: The `GlobalExceptionHandler` intercepts this exception, logs it appropriately, and gracefully returns a `500 Internal Server Error` DTO rather than crashing or exposing internal stack traces to the client.
 
 jobs:
   test:
