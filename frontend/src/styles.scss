@@ -1,22 +1,73 @@
-/* Global Styles */
+/* Global Netflix-style Theme */
+:root {
+  --netflix-red: #E50914;
+  --netflix-red-hover: #F40612;
+  --netflix-black: #141414;
+  --netflix-dark: #1F1F1F;
+}
+
 body {
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f5f5f5;
+  background-color: var(--netflix-black);
+  color: #fff;
 }
 
 * {
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   height: 100%;
 }
 
 app-root {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--netflix-black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Button overrides */
+.btn-primary {
+  background-color: var(--netflix-red);
+  border-color: var(--netflix-red);
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+  background-color: var(--netflix-red-hover) !important;
+  border-color: var(--netflix-red-hover) !important;
+}
+
+.btn-outline-primary {
+  color: #fff;
+  border-color: var(--netflix-red);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--netflix-red);
+  border-color: var(--netflix-red);
 }

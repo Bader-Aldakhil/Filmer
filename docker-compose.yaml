@@ -1,6 +1,25 @@
 version: '3.8'
 
 services:
+  # Spring Boot Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: filmer-backend
+    restart: unless-stopped
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/filmer
+      DB_USER: postgres
+      DB_PASSWORD: filmer_dev_password
+    ports:
+      - "8080:8080"
+    networks:
+      - filmer-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   # PostgreSQL Database Service
   postgres:
     image: postgres:15-alpine

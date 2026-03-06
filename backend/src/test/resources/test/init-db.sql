@@ -23,8 +23,11 @@ DROP TABLE IF EXISTS movies CASCADE;
 CREATE TABLE movies (
     id VARCHAR(10) PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
-    year SMALLINT,
+    year SMALLINT,  -- Optimized for year values (e.g., 1888-2155)
     director VARCHAR(255),
+    rating DECIMAL(3,1) CHECK (rating >= 0 AND rating <= 10),
+    num_votes INT DEFAULT 0,
+    title_type VARCHAR(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

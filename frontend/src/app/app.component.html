@@ -1,10 +1,16 @@
 <div class="app-container">
   <header class="app-header">
     <div class="header-content">
-      <h1>{{ title }}</h1>
+      <h1 routerLink="/">FILMER</h1>
       <nav class="nav-menu">
         <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
-        <a routerLink="/connection-test" routerLinkActive="active">Connection Test</a>
+        <a routerLink="/movies" routerLinkActive="active">Movies</a>
+        <li class="nav-item">
+          <a class="nav-link px-3 opacity-75 hover-op-100" routerLink="/tvshows"
+            routerLinkActive="active opacity-100 fw-bold">TV Shows</a>
+        </li>
+        <a routerLink="/favorites" routerLinkActive="active">My List</a>
+        <a routerLink="/search" routerLinkActive="active">Search</a>
       </nav>
     </div>
   </header>

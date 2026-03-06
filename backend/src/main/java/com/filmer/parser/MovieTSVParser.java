@@ -9,8 +9,9 @@ import java.util.zip.GZIPInputStream;
  * Parses movie data and performs batch inserts into PostgreSQL database
  * 
  * TSV Format:
- * tconst	titleType	primaryTitle	originalTitle	isAdult	startYear	endYear	runtimeMinutes	genres
- * tt0000001	short	Carmencita	Carmencita	0	1894	\N	1	Documentary,Short
+ * tconst titleType primaryTitle originalTitle isAdult startYear endYear
+ * runtimeMinutes genres
+ * tt0000001 short Carmencita Carmencita 0 1894 \N 1 Documentary,Short
  * 
  * Database Tables:
  * - movies(id, title, year, director)
@@ -23,86 +24,88 @@ import java.util.zip.GZIPInputStream;
  * - Skips adult content (isAdult = 0)
  */
 public class MovieTSVParser {
-    
+
     private Connection connection;
     private PreparedStatement movieStmt;
     private PreparedStatement genreStmt;
     private PreparedStatement genreSelectStmt;
     private PreparedStatement genreMovieStmt;
-    
+
     private int movieBatchCount = 0;
     private int genreMovieBatchCount = 0;
     private static final int BATCH_SIZE = 1000;
-    
+
     private int moviesProcessed = 0;
     private int genreLinksCreated = 0;
     private int linesSkipped = 0;
-    
+
     public MovieTSVParser(Connection connection) throws SQLException {
         this.connection = connection;
         this.connection.setAutoCommit(false);
-        
+
         this.movieStmt = connection.prepareStatement(
-            "INSERT INTO movies (id, title, year, director) VALUES (?, ?, ?, NULL) " +
-            "ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, year = EXCLUDED.year"
-        );
-        
+                "INSERT INTO movies (id, title, year, director, title_type) VALUES (?, ?, ?, NULL, ?) " +
+                        "ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, year = EXCLUDED.year, title_type = EXCLUDED.title_type");
+
         this.genreStmt = connection.prepareStatement(
-            "INSERT INTO genres (name) VALUES (?) ON CONFLICT (name) DO NOTHING"
-        );
-        
+                "INSERT INTO genres (name) VALUES (?) ON CONFLICT (name) DO NOTHING");
+
         this.genreSelectStmt = connection.prepareStatement(
-            "SELECT id FROM genres WHERE name = ?"
-        );
-        
+                "SELECT id FROM genres WHERE name = ?");
+
         this.genreMovieStmt = connection.prepareStatement(
-            "INSERT INTO genres_in_movies (genre_id, movie_id) VALUES (?, ?) ON CONFLICT DO NOTHING"
-        );
+                "INSERT INTO genres_in_movies (genre_id, movie_id) VALUES (?, ?) ON CONFLICT DO NOTHING");
     }
-    
+
     public void parse(String filePath) throws IOException, SQLException {
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(
-                    new GZIPInputStream(
-                        new FileInputStream(filePath)), "UTF-8"))) {
-            
+                        new GZIPInputStream(
+                                new FileInputStream(filePath)),
+                        "UTF-8"))) {
+
             String line;
             boolean isFirstLine = true;
-            
+
             while ((line = reader.readLine()) != null) {
                 if (isFirstLine) {
                     isFirstLine = false;
                     continue; // Skip header
                 }
-                
+
                 processLine(line);
             }
-            
+
             finalizeParsing();
         }
     }
-    
+
     private void processLine(String line) throws SQLException {
         String[] fields = line.split("\t", -1);
-        
+
         if (fields.length < 9) {
             linesSkipped++;
             return;
         }
-        
+
         String tconst = fields[0];
         String titleType = fields[1];
         String primaryTitle = fields[2];
         String isAdult = fields[4];
         String startYear = fields[5];
         String genres = fields[8];
-        
-        // Filter: only movies, no adult content
-        if (!"movie".equals(titleType) || "1".equals(isAdult)) {
+
+        // Filter: only movies and TV shows, no adult content
+        boolean isAllowedType = "movie".equals(titleType) ||
+                "tvSeries".equals(titleType) ||
+                "tvMiniSeries".equals(titleType) ||
+                "tvMovie".equals(titleType);
+
+        if (!isAllowedType || "1".equals(isAdult)) {
             linesSkipped++;
             return;
         }
-        
+
         // Parse year
         Integer year = null;
         if (!"\\N".equals(startYear)) {
@@ -112,7 +115,7 @@ public class MovieTSVParser {
                 // Skip
             }
         }
-        
+
         // Insert movie
         movieStmt.setString(1, tconst);
         movieStmt.setString(2, primaryTitle);
@@ -121,9 +124,10 @@ public class MovieTSVParser {
         } else {
             movieStmt.setNull(3, Types.INTEGER);
         }
+        movieStmt.setString(4, titleType);
         movieStmt.addBatch();
         movieBatchCount++;
-        
+
         // Process genres
         if (!"\\N".equals(genres) && !genres.isEmpty()) {
             String[] genreList = genres.split(",");
@@ -133,7 +137,7 @@ public class MovieTSVParser {
                     // Insert genre
                     genreStmt.setString(1, genre);
                     genreStmt.executeUpdate();
-                    
+
                     // Get genre ID and link
                     genreSelectStmt.setString(1, genre);
                     ResultSet rs = genreSelectStmt.executeQuery();
@@ -148,26 +152,26 @@ public class MovieTSVParser {
                 }
             }
         }
-        
+
         moviesProcessed++;
-        
+
         // Execute batches - movies MUST be committed before genres
         if (movieBatchCount >= BATCH_SIZE) {
             movieStmt.executeBatch();
             connection.commit();
             movieBatchCount = 0;
-            
+
             // Now commit any pending genre links for these movies
             if (genreMovieBatchCount > 0) {
                 genreMovieStmt.executeBatch();
                 connection.commit();
                 genreMovieBatchCount = 0;
             }
-            
+
             System.out.println("✓ Processed " + moviesProcessed + " movies...");
         }
     }
-    
+
     public void finalizeParsing() throws SQLException {
         // Movies first
         if (movieBatchCount > 0) {
@@ -181,14 +185,22 @@ public class MovieTSVParser {
             connection.commit();
             genreMovieBatchCount = 0;
         }
-        
+
         movieStmt.close();
         genreStmt.close();
         genreSelectStmt.close();
         genreMovieStmt.close();
     }
-    
-    public int getMoviesProcessed() { return moviesProcessed; }
-    public int getGenreLinksCreated() { return genreLinksCreated; }
-    public int getLinesSkipped() { return linesSkipped; }
+
+    public int getMoviesProcessed() {
+        return moviesProcessed;
+    }
+
+    public int getGenreLinksCreated() {
+        return genreLinksCreated;
+    }
+
+    public int getLinesSkipped() {
+        return linesSkipped;
+    }
 }

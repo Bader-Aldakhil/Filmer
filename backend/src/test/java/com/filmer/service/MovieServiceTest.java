@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -51,7 +52,7 @@ class MovieServiceTest {
     void setUp() {
         // Set up test genres
         actionGenre = new Genre(1L, "Action");
-        
+
         // Set up test movies
         testMovie1 = new Movie();
         testMovie1.setId("tt0000001");
@@ -82,11 +83,11 @@ class MovieServiceTest {
             // Given
             List<Movie> movies = Arrays.asList(testMovie1, testMovie2);
             Page<Movie> moviePage = new PageImpl<>(movies, Pageable.unpaged(), 2);
-            when(movieRepository.findAll(any(Pageable.class))).thenReturn(moviePage);
+            when(movieRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(moviePage);
 
             // When
-            PaginatedResponse<MovieListItemResponse> response = 
-                    movieService.getMovies(1, 20, "title", "asc", null);
+            PaginatedResponse<MovieListItemResponse> response = movieService.getMovies(1, 20, "title", "asc", null,
+                    null, null, null, null);
 
             // Then
             assertNotNull(response);
@@ -94,15 +95,15 @@ class MovieServiceTest {
             assertEquals(1, response.getPage());
             assertEquals(20, response.getSize());
             assertEquals(2, response.getTotalItems());
-            
+
             // Verify first movie details
             MovieListItemResponse firstMovie = response.getItems().get(0);
             assertEquals("tt0000001", firstMovie.getId());
             assertEquals("The Shawshank Redemption", firstMovie.getTitle());
             assertEquals((short) 1994, firstMovie.getYear());
             assertEquals("Frank Darabont", firstMovie.getDirector());
-            
-            verify(movieRepository, times(1)).findAll(any(Pageable.class));
+
+            verify(movieRepository, times(1)).findAll(any(Specification.class), any(Pageable.class));
         }
 
         @Test
@@ -110,11 +111,11 @@ class MovieServiceTest {
         void getMovies_EmptyList() {
             // Given
             Page<Movie> emptyPage = new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 0);
-            when(movieRepository.findAll(any(Pageable.class))).thenReturn(emptyPage);
+            when(movieRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(emptyPage);
 
             // When
-            PaginatedResponse<MovieListItemResponse> response = 
-                    movieService.getMovies(1, 20, "title", "asc", null);
+            PaginatedResponse<MovieListItemResponse> response = movieService.getMovies(1, 20, "title", "asc", null,
+                    null, null, null, null);
 
             // Then
             assertNotNull(response);
@@ -128,21 +129,20 @@ class MovieServiceTest {
             // Given
             List<Movie> movies = Collections.singletonList(testMovie1);
             Page<Movie> moviePage = new PageImpl<>(movies, Pageable.unpaged(), 1);
-            when(movieRepository.findByTitleStartingWithIgnoreCase(eq("T"), any(Pageable.class)))
+            when(movieRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(moviePage);
 
             // When
-            PaginatedResponse<MovieListItemResponse> response = 
-                    movieService.getMovies(1, 20, "title", "asc", "T");
+            PaginatedResponse<MovieListItemResponse> response = movieService.getMovies(1, 20, "title", "asc", "T",
+                    null, null, null, null);
 
             // Then
             assertNotNull(response);
             assertEquals(1, response.getItems().size());
             assertTrue(response.getItems().get(0).getTitle().startsWith("The"));
-            
-            verify(movieRepository, times(1))
-                    .findByTitleStartingWithIgnoreCase(eq("T"), any(Pageable.class));
-            verify(movieRepository, never()).findAll(any(Pageable.class));
+
+            verify(movieRepository, times(1)).findAll(any(Specification.class), any(Pageable.class));
+            verify(movieRepository, never()).findByTitleStartingWithIgnoreCase(anyString(), any(Pageable.class));
         }
 
         @Test
@@ -154,25 +154,24 @@ class MovieServiceTest {
             numericMovie.setTitle("2001: A Space Odyssey");
             numericMovie.setYear((short) 1968);
             numericMovie.setGenres(new HashSet<>());
-            
+
             Page<Movie> moviePage = new PageImpl<>(
-                    Collections.singletonList(numericMovie), 
-                    Pageable.unpaged(), 
-                    1
-            );
-            when(movieRepository.findByTitleStartingWithNonAlpha(any(Pageable.class)))
+                    Collections.singletonList(numericMovie),
+                    Pageable.unpaged(),
+                    1);
+            when(movieRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(moviePage);
 
             // When
-            PaginatedResponse<MovieListItemResponse> response = 
-                    movieService.getMovies(1, 20, "title", "asc", "*");
+            PaginatedResponse<MovieListItemResponse> response = movieService.getMovies(1, 20, "title", "asc", "*",
+                    null, null, null, null);
 
             // Then
             assertNotNull(response);
             assertEquals(1, response.getItems().size());
             assertEquals("2001: A Space Odyssey", response.getItems().get(0).getTitle());
-            
-            verify(movieRepository, times(1)).findByTitleStartingWithNonAlpha(any(Pageable.class));
+
+            verify(movieRepository, times(1)).findAll(any(Specification.class), any(Pageable.class));
         }
 
         @Test
@@ -180,11 +179,11 @@ class MovieServiceTest {
         void getMovies_ValidatePaginationSize() {
             // Given
             Page<Movie> moviePage = new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 0);
-            when(movieRepository.findAll(any(Pageable.class))).thenReturn(moviePage);
+            when(movieRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(moviePage);
 
             // When - request size > 100
-            PaginatedResponse<MovieListItemResponse> response = 
-                    movieService.getMovies(1, 500, "title", "asc", null);
+            PaginatedResponse<MovieListItemResponse> response = movieService.getMovies(1, 500, "title", "asc", null,
+                    null, null, null, null);
 
             // Then - size should be capped at 100
             assertEquals(100, response.getSize());
@@ -195,11 +194,11 @@ class MovieServiceTest {
         void getMovies_ValidatePaginationPage() {
             // Given
             Page<Movie> moviePage = new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 0);
-            when(movieRepository.findAll(any(Pageable.class))).thenReturn(moviePage);
+            when(movieRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(moviePage);
 
             // When - request page < 1
-            PaginatedResponse<MovieListItemResponse> response = 
-                    movieService.getMovies(0, 20, "title", "asc", null);
+            PaginatedResponse<MovieListItemResponse> response = movieService.getMovies(0, 20, "title", "asc", null,
+                    null, null, null, null);
 
             // Then - page should be minimum 1
             assertEquals(1, response.getPage());
@@ -209,12 +208,12 @@ class MovieServiceTest {
         @DisplayName("Should propagate exception when repository throws - Simulated DB Failure")
         void getMovies_RepositoryException() {
             // Given
-            when(movieRepository.findAll(any(Pageable.class)))
+            when(movieRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenThrow(new RuntimeException("Database connection failed"));
 
             // When/Then
             RuntimeException exception = assertThrows(RuntimeException.class,
-                    () -> movieService.getMovies(1, 20, "title", "asc", null));
+                    () -> movieService.getMovies(1, 20, "title", "asc", null, null, null, null, null));
             
             assertEquals("Database connection failed", exception.getMessage());
         }
@@ -224,20 +223,19 @@ class MovieServiceTest {
         void getMovies_SortDescending() {
             // Given
             Page<Movie> moviePage = new PageImpl<>(
-                    Arrays.asList(testMovie1, testMovie2), 
-                    Pageable.unpaged(), 
-                    2
-            );
-            when(movieRepository.findAll(any(Pageable.class))).thenReturn(moviePage);
+                    Arrays.asList(testMovie1, testMovie2),
+                    Pageable.unpaged(),
+                    2);
+            when(movieRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(moviePage);
 
             // When
-            PaginatedResponse<MovieListItemResponse> response = 
-                    movieService.getMovies(1, 20, "rating", "desc", null);
+            PaginatedResponse<MovieListItemResponse> response = movieService.getMovies(1, 20, "rating", "desc", null,
+                    null, null, null, null);
 
             // Then
             assertNotNull(response);
             assertEquals(2, response.getItems().size());
-            verify(movieRepository, times(1)).findAll(any(Pageable.class));
+            verify(movieRepository, times(1)).findAll(any(Specification.class), any(Pageable.class));
         }
     }
 

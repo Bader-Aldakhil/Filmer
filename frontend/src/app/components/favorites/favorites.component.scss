@@ -1,0 +1,30 @@
+.movies-container {
+    background-color: var(--netflix-black);
+    min-height: 100vh;
+}
+
+.movie-card {
+    background-color: transparent !important;
+    border: none !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+
+    &:hover {
+        transform: scale(1.05);
+        z-index: 10;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.8);
+
+        .card-overlay {
+            opacity: 1 !important;
+        }
+    }
+}
+
+.hover-op-100 {
+    transition: opacity 0.3s ease;
+}
+
+.poster-placeholder {
+    background-color: #2b2b2b !important;
+}

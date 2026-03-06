@@ -1,0 +1,84 @@
+<div class="stars-container px-4 py-4 mt-4">
+    <div class="title-section d-flex justify-content-between align-items-end mb-4">
+        <h2 class="display-6 fw-bold mb-0">Stars & Actors</h2>
+
+        <div class="filters-row d-flex gap-3 align-items-center">
+            <!-- Filter -->
+            <form class="d-flex" (ngSubmit)="onFilterSubmit()">
+                <input type="text" class="form-control bg-dark text-white border-secondary me-2"
+                    placeholder="Search name..." [(ngModel)]="nameFilter" name="nameFilter">
+                <button class="btn btn-outline-light" type="submit">Search</button>
+                <button *ngIf="nameFilter" class="btn btn-link text-white ms-1" type="button"
+                    (click)="clearFilter()">Clear</button>
+            </form>
+            <!-- Sort -->
+            <select class="form-select bg-dark text-white border-secondary w-auto" [(ngModel)]="sortBy"
+                (change)="onSortChange()">
+                <option value="name">Sort by Name</option>
+                <option value="birthYear">Sort by Birth Year</option>
+            </select>
+            <select class="form-select bg-dark text-white border-secondary w-auto" [(ngModel)]="order"
+                (change)="onSortChange()">
+                <option value="asc">Asc</option>
+                <option value="desc">Desc</option>
+            </select>
+        </div>
+    </div>
+
+    <div *ngIf="loading" class="text-center my-5 py-5">
+        <div class="spinner-border text-danger" style="width: 3rem; height: 3rem;" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <div *ngIf="error" class="alert alert-danger bg-danger text-white border-0">
+        {{ error }}
+    </div>
+
+    <div *ngIf="!loading && !error && stars.length === 0"
+        class="alert alert-dark bg-transparent text-center border-0 text-muted my-5 py-5">
+        <h4>No stars found</h4>
+        <p>Try adjusting your search criteria.</p>
+    </div>
+
+    <div *ngIf="!loading && !error && stars.length > 0">
+        <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-4 mb-5">
+            <div class="col" *ngFor="let star of stars">
+                <a [routerLink]="['/stars', star.id]"
+                    class="card h-100 star-card border-secondary text-decoration-none">
+                    <div class="card-body text-center p-4 d-flex flex-column justify-content-center">
+                        <div class="rounded-circle bg-dark border border-secondary d-flex align-items-center justify-content-center mx-auto mb-3 shadow"
+                            style="width: 90px; height: 90px;">
+                            <h2 class="m-0 text-secondary"><i class="bi bi-person-fill"></i></h2>
+                        </div>
+                        <h6 class="card-title text-truncate mb-2 text-white" [title]="star.name">
+                            {{ star.name }}
+                        </h6>
+                        <p class="card-text text-muted mb-2 small">Born: {{ star.birthYear || 'Unknown' }}</p>
+                        <div class="mt-auto">
+                            <span class="badge bg-danger rounded-pill px-3 py-2">{{ star.movieCount }} Movies</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <nav *ngIf="totalPages > 1" aria-label="Stars pagination" class="mt-4 mb-5">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" [class.disabled]="currentPage === 1">
+                    <button class="page-link bg-dark text-white border-secondary"
+                        (click)="onPageChange(currentPage - 1)">Previous</button>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link bg-transparent text-muted border-secondary">Page {{ currentPage }} of {{
+                        totalPages }}</span>
+                </li>
+                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                    <button class="page-link bg-dark text-white border-secondary"
+                        (click)="onPageChange(currentPage + 1)">Next</button>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>

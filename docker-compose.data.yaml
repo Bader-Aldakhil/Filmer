@@ -1,0 +1,20 @@
+version: '3.8'
+services:
+  dataloader:
+    image: maven:3.9.6-eclipse-temurin-17
+    container_name: filmer-dataloader
+    networks:
+      - filmer-network
+    volumes:
+      - ./backend:/app
+    working_dir: /app
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/filmer
+      DB_USER: postgres
+      DB_PASSWORD: filmer_dev_password
+    command: [ "mvn", "compile", "exec:java", "-Dexec.mainClass=com.filmer.parser.DataLoader" ]
+
+networks:
+  filmer-network:
+    external:
+      name: newfolder16_filmer-network

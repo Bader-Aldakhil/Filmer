@@ -101,11 +101,16 @@ public class GenreService {
      * Validate and map sort field to entity field name.
      */
     private String validateSortField(String sortBy) {
-        return switch (sortBy.toLowerCase()) {
-            case "year" -> "year";
-            case "rating" -> "rating";
-            default -> "title"; // default to title
-        };
+        if (sortBy == null)
+            return "title";
+        switch (sortBy.toLowerCase()) {
+            case "year":
+                return "year";
+            case "rating":
+                return "rating";
+            default:
+                return "title"; // default to title
+        }
     }
 
     /**

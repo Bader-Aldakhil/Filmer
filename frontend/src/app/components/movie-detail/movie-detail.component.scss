@@ -1,0 +1,87 @@
+.movie-detail-container {
+    background-color: var(--netflix-black);
+    min-height: 100vh;
+    margin-top: -80px;
+    /* Offset the padding from app-content so the backdrop hits the top window edge */
+}
+
+.movie-backdrop {
+    position: relative;
+    width: 100%;
+    min-height: 80vh;
+    background-size: cover;
+    background-position: center 20%;
+    display: flex;
+    align-items: flex-end;
+    /* content pushed to bottom */
+
+    .backdrop-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to bottom,
+                rgba(20, 20, 20, 0.3) 0%,
+                rgba(20, 20, 20, 0.7) 60%,
+                var(--netflix-black) 100%);
+        box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.9);
+        z-index: 1;
+    }
+
+    .backdrop-content {
+        position: relative;
+        z-index: 2;
+        padding-top: 100px;
+    }
+}
+
+.text-shadow {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.hover-op-100 {
+    transition: opacity 0.2s ease;
+
+    &:hover {
+        opacity: 1 !important;
+    }
+}
+
+.poster-card {
+    border-radius: 8px;
+    overflow: hidden;
+    transform: translateY(20px);
+}
+
+.star-card-hover {
+    transition: transform 0.3s ease;
+
+    .hover-scale {
+        transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+
+    &:hover {
+        transform: translateY(-5px);
+
+        .hover-scale {
+            transform: scale(1.05);
+            border-color: #555 !important;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5) !important;
+        }
+
+        h6 {
+            color: var(--netflix-red) !important;
+        }
+    }
+}
+
+/* Hide scrollbar for cast list row */
+.hide-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.hide-scroll {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}

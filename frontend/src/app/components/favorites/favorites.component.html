@@ -1,0 +1,61 @@
+<div class="movies-container p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 pt-3">
+        <h2 class="text-white fw-bold mb-0">My List</h2>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="favorites().length === 0" class="text-center py-5">
+        <div class="mb-4">
+            <i class="bi bi-bookmark-plus text-secondary" style="font-size: 4rem;"></i>
+        </div>
+        <h4 class="text-white mb-3">Your list is empty</h4>
+        <p class="text-secondary">Save movies and TV shows to keep track of what you want to watch.</p>
+        <button class="btn btn-danger mt-3 px-4" routerLink="/movies">Browse Catalog</button>
+    </div>
+
+    <!-- Favorites Grid -->
+    <div *ngIf="favorites().length > 0"
+        class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 row-cols-xl-6 g-4">
+        <div class="col" *ngFor="let item of favorites()">
+            <div class="movie-card position-relative rounded overflow-hidden" (click)="goToDetail(item.id)">
+                <!-- Movie Poster -->
+                <div class="poster-container" style="padding-top: 150%;">
+                    <img *ngIf="item.poster" [src]="item.poster"
+                        class="position-absolute top-0 w-100 h-100 object-fit-cover" [alt]="item.title">
+                    <div *ngIf="!item.poster"
+                        class="poster-placeholder position-absolute top-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-dark text-white p-3 text-center border border-secondary opacity-75">
+                        <i class="bi bi-film fs-1 mb-2 text-secondary"></i>
+                        <h6 class="mb-0 text-truncate w-100" [title]="item.title">{{ item.title }}</h6>
+                    </div>
+                </div>
+
+                <!-- Hover Overlay -->
+                <div
+                    class="card-overlay position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-end p-3 opacity-0 hover-op-100">
+                    <!-- Gradient Background -->
+                    <div class="position-absolute bottom-0 start-0 w-100 h-100"
+                        style="background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 50%, transparent 100%); z-index: -1;">
+                    </div>
+
+                    <h6 class="text-white fw-bold text-truncate mb-1">{{ item.title }}</h6>
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-success small fw-medium">{{ item.year || 'N/A' }}</span>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button
+                            class="btn btn-light rounded-circle p-1 d-flex align-items-center justify-content-center flex-grow-1"
+                            title="Play">
+                            <i class="bi bi-play-fill fs-5"></i>
+                        </button>
+                        <button
+                            class="btn btn-outline-light rounded-circle p-1 d-flex align-items-center justify-content-center"
+                            (click)="removeFavorite(item, $event)" title="Remove from My List">
+                            <i class="bi bi-dash fs-5"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
