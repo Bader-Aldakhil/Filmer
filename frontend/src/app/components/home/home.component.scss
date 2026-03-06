@@ -1,192 +1,87 @@
 .home-container {
   min-height: 100vh;
+  margin-top: -80px;
+  /* Offset the 80px padding from app-content so hero touches the top */
 }
 
 .hero-section {
-  background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
-  color: white;
-  padding: 4rem 2rem;
-  text-align: center;
+  position: relative;
+  height: 85vh;
+  min-height: 600px;
+  background-image: url('https://placehold.co/1920x1080/141414/222222?text=FILMER+ORIGINALS');
+  /* Placeholder for a nice movie collage */
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 4%;
+
+  .hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, rgba(0, 0, 0, 0.4) 0%, rgba(20, 20, 20, 1) 100%);
+    box-shadow: inset 0 0 150px rgba(0, 0, 0, 0.9);
+    z-index: 1;
+  }
 
   .hero-content {
-    max-width: 600px;
-    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+    padding-top: 50px;
 
-    h1 {
-      margin: 0 0 1rem 0;
-      font-size: 3rem;
-      font-weight: bold;
+    .hero-title {
+      font-size: 4rem;
+      font-weight: 900;
+      color: #fff;
+      margin-bottom: 1rem;
+      line-height: 1.1;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     }
 
-    .tagline {
-      font-size: 1.3rem;
-      margin: 0 0 2rem 0;
-      opacity: 0.9;
+    .hero-subtitle {
+      font-size: 2rem;
+      font-weight: 500;
+      color: #fff;
+      margin-bottom: 1.5rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     }
 
-    .cta-buttons {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      flex-wrap: wrap;
+    .hero-tagline {
+      font-size: 1.25rem;
+      font-weight: 400;
+      color: #e5e5e5;
+      margin-bottom: 2.5rem;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+    }
 
+    .hero-actions {
       button {
-        padding: 0.75rem 2rem;
-        font-size: 1rem;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-weight: bold;
-
-        &.btn-primary {
-          background-color: white;
-          color: #1a73e8;
-
-          &:hover {
-            background-color: #f5f5f5;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-          }
-        }
-
-        &.btn-secondary {
-          background-color: rgba(255, 255, 255, 0.2);
-          color: white;
-          border: 2px solid white;
-
-          &:hover:not(:disabled) {
-            background-color: rgba(255, 255, 255, 0.3);
-          }
-
-          &:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-          }
+        &:hover {
+          background-color: var(--netflix-red-hover);
+          transform: scale(1.05);
+          transition: all 0.2s ease-in-out;
         }
       }
     }
-  }
-}
-
-.features-section {
-  padding: 4rem 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-
-  h2 {
-    text-align: center;
-    font-size: 2rem;
-    margin: 0 0 2rem 0;
-    color: #1a73e8;
-  }
-
-  .features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
   }
 }
 
 .feature-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  text-align: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease;
+  background-color: #1f1f1f !important;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-10px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    border-color: #555 !important;
   }
 
-  .feature-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-  }
-
-  h3 {
-    margin: 1rem 0 0.5rem 0;
-    color: #1a73e8;
-    font-size: 1.2rem;
-  }
-
-  p {
-    margin: 0;
-    color: #666;
-    line-height: 1.6;
-  }
-}
-
-.info-section {
-  padding: 4rem 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 2rem;
-}
-
-.info-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-  border-top: 4px solid #1a73e8;
-
-  h3 {
-    margin: 0 0 1rem 0;
-    color: #1a73e8;
-    font-size: 1.3rem;
-  }
-
-  p {
-    margin: 0.5rem 0;
-    color: #666;
-    line-height: 1.6;
-  }
-
-  ol {
-    padding-left: 1.5rem;
-    color: #666;
-
-    li {
-      margin: 0.5rem 0;
-      line-height: 1.6;
-    }
-  }
-
-  strong {
-    color: #1a73e8;
-  }
-}
-
-@media (max-width: 768px) {
-  .hero-section {
-    padding: 2rem 1rem;
-
-    .hero-content {
-      h1 {
-        font-size: 2rem;
-      }
-
-      .tagline {
-        font-size: 1.1rem;
-      }
-    }
-  }
-
-  .features-section {
-    padding: 2rem 1rem;
-
-    h2 {
-      font-size: 1.5rem;
-    }
-  }
-
-  .info-section {
-    padding: 2rem 1rem;
-    grid-template-columns: 1fr;
+  .display-3 {
+    color: var(--netflix-red);
   }
 }

@@ -1,0 +1,93 @@
+<div class="star-detail-container" *ngIf="star && !loading && !error">
+    <!-- Cinematic Hero Section -->
+    <div class="star-backdrop"
+        [style.background-image]="'url(https://placehold.co/1920x1080/141414/222222?text=FILMER+STAR)'">
+        <div class="backdrop-overlay"></div>
+        <div class="container backdrop-content pb-5">
+            <div class="mb-4">
+                <a routerLink="/stars" class="text-white text-decoration-none fw-bold op-75 hover-op-100">
+                    <i class="bi bi-arrow-left"></i> Back to Stars
+                </a>
+            </div>
+
+            <div class="row align-items-center">
+                <div class="col-md-3 d-none d-md-block text-center">
+                    <!-- Actor Profile Image -->
+                    <div class="rounded-circle bg-dark border border-secondary d-flex align-items-center justify-content-center mx-auto shadow-lg object-fit-cover"
+                        style="width: 250px; height: 250px;">
+                        <h1 class="display-1 m-0 text-secondary"><i class="bi bi-person-fill"></i></h1>
+                    </div>
+                </div>
+
+                <div class="col-md-9 text-center text-md-start mb-4 mt-4 mt-md-0">
+                    <h1 class="display-3 fw-bold text-white mb-3 text-shadow">{{ star.name }}</h1>
+
+                    <div
+                        class="d-flex flex-wrap gap-3 mb-4 align-items-center justify-content-center justify-content-md-start text-white meta-row">
+                        <span class="badge border border-secondary text-white rounded-pill px-3 py-2 fs-6">
+                            Born: {{ star.birthYear || 'Unknown' }}
+                        </span>
+                        <span class="badge bg-danger rounded-pill px-3 py-2 fs-6">
+                            {{ star.movies?.length || 0 }} Movies
+                        </span>
+                    </div>
+
+                    <div class="mb-4 fs-5 w-75 mx-auto mx-md-0 lh-base text-light opacity-75">
+                        <p>Explore the complete filmography of <strong>{{ star.name }}</strong>. Discover their greatest
+                            performances available on Filmer.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container main-content mt-5 mb-5 px-4">
+        <h3 class="text-white mb-4 fw-bold">Filmography</h3>
+
+        <div *ngIf="!star.movies?.length" class="alert bg-dark text-muted border-secondary">
+            No filmography information available for this star. Ensure you have loaded the principal cast bindings.
+        </div>
+
+        <div *ngIf="star.movies?.length" class="row row-cols-2 row-cols-md-4 row-cols-lg-5 row-cols-xl-6 g-4 mb-5">
+            <div class="col" *ngFor="let movie of star.movies">
+                <a [routerLink]="['/movies', movie.id]"
+                    class="card movie-card text-decoration-none h-100 bg-transparent border-0">
+                    <div class="poster-placeholder"
+                        style="aspect-ratio: 2/3; background: linear-gradient(145deg, #2a2a2a 0%, #1a1a1a 100%); border-radius: 4px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 1rem; position: relative; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.5);">
+                        <span class="poster-title fw-bold text-white text-uppercase"
+                            style="z-index: 2; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">{{ movie.title }}</span>
+                        <div
+                            style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.6) 100%); z-index: 1;">
+                        </div>
+                    </div>
+
+                    <div class="card-body px-0 py-2">
+                        <h5 class="card-title text-truncate text-white fs-6 fw-bold mb-1" [title]="movie.title">{{
+                            movie.title }}</h5>
+                        <div class="d-flex justify-content-between align-items-center card-subtitle">
+                            <span class="text-muted small">{{ movie.year || 'N/A' }}</span>
+                            <span class="text-muted small text-truncate d-inline-block" style="max-width: 80px;"
+                                [title]="movie.director">{{ movie.director || 'Unknown' }}</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading and Error States -->
+<div class="container my-5 pt-5" *ngIf="loading || error">
+    <div *ngIf="loading" class="text-center my-5 py-5">
+        <div class="spinner-border text-danger" style="width: 3rem; height: 3rem;" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <div *ngIf="error" class="alert alert-danger bg-danger text-white border-0 my-5">
+        {{ error }}
+        <div class="mt-3">
+            <a routerLink="/stars" class="btn btn-outline-light">Back to Stars</a>
+        </div>
+    </div>
+</div>

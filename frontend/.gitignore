@@ -18,3 +18,10 @@ test-results/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Environment variables
+.env
+.env.*
+*.env
+.env.local
+.env.*.local

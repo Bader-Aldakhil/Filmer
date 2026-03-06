@@ -1,7 +1,11 @@
 import { Routes } from '@angular/router';
 import { HomeComponent } from './components/home/home.component';
 import { ConnectivityTestComponent } from './components/connectivity-test/connectivity-test.component';
-
+import { MoviesListComponent } from './components/movies-list/movies-list.component';
+import { MovieDetailComponent } from './components/movie-detail/movie-detail.component';
+import { SearchComponent } from './components/search/search.component';
+import { TvshowsListComponent } from './components/tvshows-list/tvshows-list.component';
+import { FavoritesComponent } from './components/favorites/favorites.component';
 export const APP_ROUTES: Routes = [
   {
     path: '',
@@ -10,6 +14,34 @@ export const APP_ROUTES: Routes = [
   {
     path: 'connection-test',
     component: ConnectivityTestComponent
+  },
+  {
+    path: 'movies',
+    component: MoviesListComponent,
+    title: 'Filmer - Movies'
+  },
+  {
+    path: 'tvshows',
+    component: TvshowsListComponent,
+    title: 'Filmer - TV Shows'
+  },
+  {
+    path: 'movies/:id',
+    component: MovieDetailComponent,
+    title: 'Filmer - Movie Details'
+  },
+  {
+    path: 'tvshows/:id',
+    component: MovieDetailComponent,
+    title: 'Filmer - TV Show Details'
+  },
+  {
+    path: 'favorites',
+    component: FavoritesComponent
+  },
+  {
+    path: 'search',
+    component: SearchComponent
   },
   {
     path: '**',

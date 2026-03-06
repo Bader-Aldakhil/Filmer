@@ -1,0 +1,165 @@
+<div class="search-container px-4 py-4 mt-4 text-white">
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-10">
+            <h2 class="display-6 fw-bold text-center mb-4"><i class="bi bi-search text-danger"></i> Advanced Search</h2>
+
+            <div class="card bg-dark border-secondary shadow-lg">
+                <div class="card-body p-4 rounded">
+                    <form (ngSubmit)="onSearchSubmit()">
+                        <!-- Main Search -->
+                        <div class="mb-4">
+                            <label for="query" class="form-label fw-bold text-light">General keyword Search (Title,
+                                Director, Star)</label>
+                            <input type="text" class="form-control form-control-lg bg-black text-white border-secondary"
+                                id="query" name="query" [(ngModel)]="query"
+                                placeholder="Enter keywords to search across the database...">
+                        </div>
+
+                        <hr class="border-secondary mb-4">
+                        <h5 class="mb-3 text-danger fw-bold">Specific Filters</h5>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="titleParams" class="form-label text-light">Title exactly/partially
+                                    contains</label>
+                                <input type="text" class="form-control bg-black text-white border-secondary"
+                                    id="titleParams" name="titleParams" [(ngModel)]="titleParams">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="director" class="form-label text-light">Director Name</label>
+                                <input type="text" class="form-control bg-black text-white border-secondary"
+                                    id="director" name="director" [(ngModel)]="director">
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="star" class="form-label text-light">Star / Actor Name</label>
+                                <input type="text" class="form-control bg-black text-white border-secondary" id="star"
+                                    name="star" [(ngModel)]="star">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="year" class="form-label text-light">Release Year</label>
+                                <input type="number" class="form-control bg-black text-white border-secondary" id="year"
+                                    name="year" [(ngModel)]="year" min="1800" max="2100">
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="yearFrom" class="form-label text-light">Released After (Year)</label>
+                                <input type="number" class="form-control bg-black text-white border-secondary"
+                                    id="yearFrom" name="yearFrom" [(ngModel)]="yearFrom">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="yearTo" class="form-label text-light">Released Before (Year)</label>
+                                <input type="number" class="form-control bg-black text-white border-secondary"
+                                    id="yearTo" name="yearTo" [(ngModel)]="yearTo">
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-3 mt-4">
+                            <button type="button" class="btn btn-outline-light px-4" (click)="resetForm()">Clear
+                                Filters</button>
+                            <button type="submit" class="btn btn-danger px-5 fw-bold shadow">Search</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="text-center my-5 py-5">
+        <div class="spinner-border text-danger" style="width: 3rem; height: 3rem;" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="error" class="alert alert-danger bg-danger text-white border-0 text-center shadow-sm">
+        {{ error }}
+    </div>
+
+    <!-- Results Section -->
+    <div *ngIf="hasSearched && !loading && !error">
+        <div class="d-flex justify-content-between align-items-end mb-4 pb-2 border-bottom border-secondary">
+            <h3 class="m-0 fw-bold">Search Results <span class="badge bg-danger fs-6 ms-2">{{ totalElements | number }}
+                    found</span></h3>
+
+            <div class="d-flex gap-2">
+                <select class="form-select form-select-sm bg-dark text-white border-secondary" style="width: auto;"
+                    [(ngModel)]="sortBy" (change)="onSortChange()">
+                    <option value="title">Sort by Title</option>
+                    <option value="year">Sort by Year</option>
+                    <option value="rating">Sort by Rating</option>
+                </select>
+                <select class="form-select form-select-sm bg-dark text-white border-secondary" style="width: auto;"
+                    [(ngModel)]="order" (change)="onSortChange()">
+                    <option value="desc">Desc</option>
+                    <option value="asc">Asc</option>
+                </select>
+            </div>
+        </div>
+
+        <div *ngIf="movies.length === 0"
+            class="alert alert-dark bg-transparent text-center border-0 text-muted my-5 py-5">
+            <h4 class="mb-3">No movies found matching your criteria.</h4>
+            <p class="fs-6">Try adjusting your filters or search keywords.</p>
+        </div>
+
+        <!-- Movie Cards Grid -->
+        <div *ngIf="movies.length > 0" class="row row-cols-2 row-cols-md-4 row-cols-lg-5 row-cols-xl-6 g-4 mb-5">
+            <div class="col" *ngFor="let movie of movies">
+                <a [routerLink]="['/movies', movie.id]"
+                    class="card movie-card position-relative rounded overflow-hidden text-decoration-none h-100 border-0 bg-transparent cursor-pointer">
+
+                    <!-- Movie Poster -->
+                    <div class="poster-container" style="padding-top: 150%;">
+                        <img *ngIf="posters[movie.id]" [src]="posters[movie.id]"
+                            class="position-absolute top-0 w-100 h-100 object-fit-cover" [alt]="movie.title">
+                        <div *ngIf="!posters[movie.id]"
+                            class="poster-placeholder position-absolute top-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-dark text-white p-3 text-center border border-secondary opacity-75">
+                            <i class="bi bi-film fs-1 mb-2 text-secondary"></i>
+                            <h6 class="mb-0 text-truncate w-100" [title]="movie.title">{{ movie.title }}</h6>
+                        </div>
+                    </div>
+
+                    <!-- Hover Overlay -->
+                    <div
+                        class="card-overlay position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-end p-3 opacity-0 hover-op-100">
+                        <div class="position-absolute bottom-0 start-0 w-100 h-100"
+                            style="background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 50%, transparent 100%); z-index: -1;">
+                        </div>
+
+                        <h6 class="text-white fw-bold text-truncate mb-1">{{ movie.title }}</h6>
+                        <div class="d-flex justify-content-between align-items-center w-100 card-subtitle mb-2">
+                            <span class="text-success small fw-medium">{{ movie.year || 'N/A' }}</span>
+                            <span class="text-white small fw-bold" *ngIf="movie.rating">
+                                <i class="bi bi-star-fill text-warning me-1"></i>{{ movie.rating }}
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <nav *ngIf="totalPages > 1" aria-label="Search results pagination" class="mt-4 mb-5">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" [class.disabled]="currentPage === 1">
+                    <button class="page-link bg-dark text-white border-secondary"
+                        (click)="onPageChange(currentPage - 1)">Previous</button>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link px-3 text-muted bg-transparent border-secondary">Page {{ currentPage }} of {{
+                        totalPages }}</span>
+                </li>
+                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                    <button class="page-link bg-dark text-white border-secondary"
+                        (click)="onPageChange(currentPage + 1)">Next</button>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>

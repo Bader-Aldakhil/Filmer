@@ -20,6 +20,9 @@ public class Movie {
     @Column(nullable = false, length = 100)
     private String title;
 
+    @Column(name = "title_type", length = 50)
+    private String titleType;
+
     @Column
     private Short year;
 
@@ -33,12 +36,12 @@ public class Movie {
     private Integer numVotes;
 
     @ManyToMany
-    @JoinTable(
-        name = "genres_in_movies",
-        joinColumns = @JoinColumn(name = "movie_id"),
-        inverseJoinColumns = @JoinColumn(name = "genre_id")
-    )
+    @JoinTable(name = "genres_in_movies", joinColumns = @JoinColumn(name = "movie_id"), inverseJoinColumns = @JoinColumn(name = "genre_id"))
     private Set<Genre> genres = new HashSet<>();
+
+    @ManyToMany
+    @JoinTable(name = "stars_in_movies", joinColumns = @JoinColumn(name = "movie_id"), inverseJoinColumns = @JoinColumn(name = "star_id"))
+    private Set<Star> stars = new HashSet<>();
 
     public Movie() {
     }
@@ -68,6 +71,14 @@ public class Movie {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getTitleType() {
+        return titleType;
+    }
+
+    public void setTitleType(String titleType) {
+        this.titleType = titleType;
     }
 
     public Short getYear() {
@@ -108,5 +119,13 @@ public class Movie {
 
     public void setGenres(Set<Genre> genres) {
         this.genres = genres;
+    }
+
+    public Set<Star> getStars() {
+        return stars;
+    }
+
+    public void setStars(Set<Star> stars) {
+        this.stars = stars;
     }
 }

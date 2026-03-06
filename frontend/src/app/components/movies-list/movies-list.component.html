@@ -1,0 +1,109 @@
+<div class="movies-container px-4">
+  <div class="title-section mb-5 mt-2">
+    <h1 class="display-4 fw-bold text-white">Movies</h1>
+    <p class="text-muted fs-5 mb-0">Explore our collection, sorted by popularity</p>
+  </div>
+
+  <div class="filters-row d-flex gap-3 align-items-center mb-4">
+    <!-- Search Bar (stretching on the left) -->
+    <div class="flex-grow-1 position-relative">
+      <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+      <input type="text" class="form-control bg-dark text-white border-secondary ps-5 rounded-pill py-2"
+        placeholder="Search for movies..." [(ngModel)]="searchQuery" (input)="onFilterSubmit()" name="searchQuery">
+    </div>
+
+    <!-- Genre Filter (on the right) -->
+    <select class="form-select bg-dark text-white border-secondary w-auto rounded-pill py-2" [(ngModel)]="selectedGenre"
+      (change)="onFilterSubmit()" name="selectedGenre">
+      <option [ngValue]="null">All Genres</option>
+      <option *ngFor="let genre of genres" [ngValue]="genre.id">{{ genre.name }}</option>
+    </select>
+
+    <!-- Rating Filter (on the right) -->
+    <select class="form-select bg-dark text-white border-secondary w-auto rounded-pill py-2" [(ngModel)]="minRating"
+      (change)="onFilterSubmit()" name="minRating">
+      <option [ngValue]="0">Any Rating</option>
+      <option [ngValue]="9">9+ ⭐</option>
+      <option [ngValue]="8">8+ ⭐</option>
+      <option [ngValue]="7">7+ ⭐</option>
+      <option [ngValue]="6">6+ ⭐</option>
+      <option [ngValue]="5">5+ ⭐</option>
+    </select>
+  </div>
+
+  <div *ngIf="loading" class="row row-cols-2 row-cols-md-4 row-cols-lg-5 row-cols-xl-6 g-4 mb-5">
+    <div class="col" *ngFor="let skeleton of [1,2,3,4,5,6,7,8,9,10,11,12]">
+      <div class="skeleton-card rounded overflow-hidden">
+        <div class="skeleton-poster shimmer" style="aspect-ratio: 2/3;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger bg-danger text-white border-0">
+    {{ error }}
+  </div>
+
+  <div *ngIf="!loading && !error && movies.length === 0"
+    class="alert alert-dark bg-transparent text-center border-0 text-muted my-5 py-5">
+    <h4>No movies found</h4>
+    <p>Try adjusting your filters.</p>
+  </div>
+
+  <div *ngIf="!loading && !error && movies.length > 0">
+    <!-- Netflix style Grid -->
+    <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 row-cols-xl-6 g-4 mb-5">
+      <div class="col" *ngFor="let movie of movies">
+        <a [routerLink]="['/movies', movie.id]"
+          class="card movie-card position-relative rounded-3 overflow-hidden text-decoration-none border-0 bg-transparent cursor-pointer">
+
+          <!-- Movie Poster -->
+          <div class="poster-wrapper" style="aspect-ratio: 2/3; position: relative;">
+            <img *ngIf="posters[movie.id]" [src]="posters[movie.id]" class="w-100 h-100 object-fit-cover rounded-3"
+              [alt]="movie.title" style="position: absolute; top: 0; left: 0;">
+            <div *ngIf="!posters[movie.id]"
+              class="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-dark text-white p-3 text-center rounded-3 shimmer"
+              style="position: absolute; top: 0; left: 0;">
+              <i class="bi bi-film fs-1 mb-2 text-secondary"></i>
+              <h6 class="mb-0 text-truncate w-100" [title]="movie.title">{{ movie.title }}</h6>
+            </div>
+            <!-- Rating Badge -->
+            <div *ngIf="movie.rating"
+              class="rating-badge position-absolute top-0 end-0 m-2 px-2 py-1 bg-dark bg-opacity-75 rounded-pill text-white small fw-bold"
+              style="z-index: 2;">
+              <i class="bi bi-star-fill text-warning me-1"></i>{{ movie.rating }}
+            </div>
+          </div>
+
+          <!-- Hover Overlay -->
+          <div
+            class="card-overlay position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-end p-3 rounded-3">
+            <div class="position-absolute bottom-0 start-0 w-100 h-100 rounded-3"
+              style="background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 50%, transparent 100%); z-index: -1;">
+            </div>
+
+            <h6 class="text-white fw-bold text-truncate mb-1">{{ movie.title }}</h6>
+            <div class="d-flex justify-content-between align-items-center w-100 card-subtitle mb-2">
+              <span class="text-success small fw-medium">{{ movie.year || 'N/A' }}</span>
+              <span class="text-white small fw-bold" *ngIf="movie.rating">
+                <i class="bi bi-star-fill text-warning me-1"></i>{{ movie.rating }}
+              </span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Infinite Scroll Loading Spinner -->
+    <div *ngIf="loadingMore" class="text-center my-4 py-3">
+      <div class="spinner-border spinner-border-sm text-danger" role="status">
+        <span class="visually-hidden">Loading more...</span>
+      </div>
+      <p class="text-muted small mt-2">Loading more movies...</p>
+    </div>
+
+    <!-- End of List -->
+    <div *ngIf="!hasMore && movies.length > 0" class="text-center my-4 py-3">
+      <p class="text-muted small">You've reached the end</p>
+    </div>
+  </div>
+</div>
