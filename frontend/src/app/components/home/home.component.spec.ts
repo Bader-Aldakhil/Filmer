@@ -24,7 +24,7 @@ describe('HomeComponent', () => {
     const element = fixture.nativeElement as HTMLElement;
     const heading = element.querySelector('.hero-content h1');
 
-    expect(heading?.textContent).toContain('Welcome to Filmer');
+    expect(heading?.textContent).toContain('Unlimited movies, TV shows, and more.');
   });
 
   it('should show expected feature cards', () => {
@@ -41,7 +41,7 @@ describe('HomeComponent', () => {
     ]);
   });
 
-  it('should render disabled coming-soon browse button', () => {
+  it('should render browse button', () => {
     const element = fixture.nativeElement as HTMLElement;
     const buttons = Array.from(element.querySelectorAll('button'));
     const browseButton = buttons.find(button =>
@@ -49,6 +49,5 @@ describe('HomeComponent', () => {
     );
 
     expect(browseButton).toBeTruthy();
-    expect(browseButton?.hasAttribute('disabled')).toBeTrue();
   });
 });
