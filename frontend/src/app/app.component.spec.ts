@@ -25,10 +25,10 @@ describe('AppComponent', () => {
     const element = fixture.nativeElement as HTMLElement;
     const heading = element.querySelector('header h1');
 
-    expect(heading?.textContent).toContain('Filmer - Movie Rental System');
+    expect(heading?.textContent).toContain('FILMER');
   });
 
-  it('should render Home and Connection Test navigation links', () => {
+  it('should render navigation links', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
 
@@ -38,6 +38,6 @@ describe('AppComponent', () => {
     );
 
     expect(navLinks).toContain('Home');
-    expect(navLinks).toContain('Connection Test');
+    expect(navLinks).toContain('Movies');
   });
 });
