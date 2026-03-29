@@ -11,15 +11,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Verify Project Structure
       run: |
-        echo "Checking for required directories..."
-        if [ -d "backend" ] && [ -d "frontend" ] && [ -d "database" ]; then
-          echo "? Directory structure is correct."
+        echo "Checking for required project paths..."
+        required_paths=("backend" "frontend" ".github/workflows" "README.md")
+        missing=0
+
+        for path in "${required_paths[@]}"; do
+          if [ ! -e "$path" ]; then
+            echo "Missing required path: $path"
+            missing=1
+          fi
+        done
+
+        if [ "$missing" -eq 0 ]; then
+          echo "Project structure is valid."
         else
-          echo "? Error: Missing main directories (backend, frontend, or database)."
+          echo "Project structure check failed."
           exit 1
         fi
 

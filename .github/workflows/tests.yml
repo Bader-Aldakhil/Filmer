@@ -27,6 +27,20 @@ jobs:
 
   backend-tests:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: filmer
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d filmer"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
     defaults:
       run:
         working-directory: backend
@@ -38,9 +52,6 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
-    - name: Start PostgreSQL Service
-      run: |
-        docker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=filmer postgres:15
     - name: Run backend tests
       env:
         DB_URL: jdbc:postgresql://localhost:5432/filmer
@@ -51,6 +62,20 @@ jobs:
   contract-tests-allowed-to-fail:
     runs-on: ubuntu-latest
     continue-on-error: true # Allowed to fail for Phase 3
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: filmer
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d filmer"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
     defaults:
       run:
         working-directory: backend
@@ -62,9 +87,6 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
-    - name: Start PostgreSQL Service
-      run: |
-        docker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=filmer postgres:15
     - name: Run Contract Tests
       env:
         DB_URL: jdbc:postgresql://localhost:5432/filmer
