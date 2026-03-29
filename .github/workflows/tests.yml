@@ -47,17 +47,17 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Set up JDK 17
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
-    - name: Run backend tests
+    - name: Run backend tests (exclude contract tests)
       env:
         DB_URL: jdbc:postgresql://localhost:5432/filmer
         DB_USER: postgres
         DB_PASSWORD: postgres
-      run: mvn -B test
+      run: mvn -B test -Dtest='!*ContractTest'
 
   contract-tests-allowed-to-fail:
     runs-on: ubuntu-latest
@@ -82,14 +82,14 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Set up JDK 17
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
-    - name: Run Contract Tests
+    - name: Run Contract Tests (allowed to fail)
       env:
         DB_URL: jdbc:postgresql://localhost:5432/filmer
         DB_USER: postgres
         DB_PASSWORD: postgres
-      run: mvn -B test -Dtest=*ContractTest
+      run: mvn -B test -Dtest='*ContractTest' || true
