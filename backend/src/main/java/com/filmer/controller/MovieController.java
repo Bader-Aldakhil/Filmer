@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
  * Handles movie listing, pagination, sorting, filtering, and detail retrieval.
  */
 @RestController
-@RequestMapping("/api/v1/movies")
+@RequestMapping("/api/movies")
 public class MovieController {
 
     private final MovieService movieService;

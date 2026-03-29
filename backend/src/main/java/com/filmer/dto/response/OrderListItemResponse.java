@@ -8,7 +8,7 @@ import java.time.LocalDate;
  */
 public class OrderListItemResponse {
 
-    private Long orderId;
+    private String orderId;
     private LocalDate orderDate;
     private Integer itemCount;
     private BigDecimal totalPrice;
@@ -18,11 +18,11 @@ public class OrderListItemResponse {
 
     // Getters and Setters
 
-    public Long getOrderId() {
+    public String getOrderId() {
         return orderId;
     }
 
-    public void setOrderId(Long orderId) {
+    public void setOrderId(String orderId) {
         this.orderId = orderId;
     }
 

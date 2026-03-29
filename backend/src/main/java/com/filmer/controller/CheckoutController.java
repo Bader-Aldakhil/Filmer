@@ -17,7 +17,7 @@ import java.util.Collections;
  * All endpoints require authentication.
  */
 @RestController
-@RequestMapping("/api/v1/checkout")
+@RequestMapping("/api/checkout")
 public class CheckoutController {
 
     /**

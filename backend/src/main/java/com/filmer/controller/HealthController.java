@@ -17,7 +17,7 @@ import java.util.Map;
  * Provides health check and system status information.
  */
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/health")
 public class HealthController {
 
     @Autowired

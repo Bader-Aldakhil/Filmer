@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
  * Handles customer login, logout, and session management.
  */
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/auth")
 public class AuthController {
 
     /**

@@ -18,7 +18,7 @@ import java.util.Map;
  * All endpoints require authentication.
  */
 @RestController
-@RequestMapping("/api/v1/cart")
+@RequestMapping("/api/cart")
 public class CartController {
 
     /**

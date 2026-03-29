@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
  * Handles star listing, searching, and detail retrieval.
  */
 @RestController
-@RequestMapping("/api/v1/stars")
+@RequestMapping("/api/stars")
 public class StarController {
 
     private final StarService starService;
