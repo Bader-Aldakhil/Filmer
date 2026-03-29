@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.QueryTimeoutException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -53,6 +54,19 @@ class RobustnessTest extends BaseIntegrationTest {
         ResponseEntity<?> response = restTemplate.getForEntity(baseUrl + "/1/movies", Object.class);
 
         // Then: Should not crash, but return a graceful 500 error
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Test
+    @DisplayName("Should return 500 Internal Server Error when DB timeout occurs")
+    void testDatabaseTimeoutSimulation() {
+        // Given: Simulate repository timeout while querying database
+        when(genreRepositoryMock.findAll()).thenThrow(new QueryTimeoutException("Simulated DB timeout"));
+
+        // When
+        ResponseEntity<?> response = restTemplate.getForEntity(baseUrl, Object.class);
+
+        // Then: Service should fail gracefully without crashing the server
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

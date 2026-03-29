@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface TmdbCastMember {
     id: number;
@@ -19,7 +20,7 @@ export interface TmdbCreditsResponse {
     providedIn: 'root'
 })
 export class TmdbService {
-    private readonly apiKey = '8459b703eb84ae6258897e3c9088ec3e';
+    private readonly apiKey = environment.tmdbApiKey;
     private readonly baseUrl = 'https://api.themoviedb.org/3';
     private readonly imageBaseUrl = 'https://image.tmdb.org/t/p';
 
@@ -29,7 +30,7 @@ export class TmdbService {
      * Find a movie/TV show by IMDB ID and return the full cast with photos
      */
     getCastByImdbId(imdbId: string): Observable<TmdbCastMember[]> {
-        if (!imdbId) return of([]);
+        if (!imdbId || !this.apiKey) return of([]);
 
         return new Observable<TmdbCastMember[]>(subscriber => {
             this.http.get<any>(
@@ -80,7 +81,7 @@ export class TmdbService {
      * Get poster and backdrop URLs for a movie/TV show by IMDB ID
      */
     getPosterByImdbId(imdbId: string): Observable<{ poster: string | null; backdrop: string | null; overview: string | null }> {
-        if (!imdbId) return of({ poster: null, backdrop: null, overview: null });
+        if (!imdbId || !this.apiKey) return of({ poster: null, backdrop: null, overview: null });
 
         return new Observable(subscriber => {
             this.http.get<any>(
