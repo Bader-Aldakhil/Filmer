@@ -369,12 +369,6 @@ DB_PASSWORD=your_password
 
 The `.env` file is included in `.gitignore` and will not be committed to the repository.
 
-Frontend TMDB configuration is handled in:
-- `frontend/src/environments/environment.ts`
-- `frontend/src/environments/environment.prod.ts`
-
-Set `tmdbApiKey` locally for development builds only. Never commit real API keys.
-
 ## Development Workflow
 
 ### Branching Strategy
@@ -385,14 +379,9 @@ Set `tmdbApiKey` locally for development builds only. Never commit real API keys
 
 ### Code Quality
 - All code must pass automated tests before merging
-- GitHub Actions run frontend unit tests, frontend E2E tests, backend unit tests, backend integration/stress/robustness tests, and secret scanning checks
+- GitHub Actions run linting, formatting, and testing checks
 - Follow clean code principles and proper documentation
 - All API endpoints must be documented with request/response formats
-
-### PR Rules and Governance
-- Use `.github/PULL_REQUEST_TEMPLATE.md` for every PR
-- Follow `docs/definition-of-done-phase3.md` before requesting merge
-- Configure repository branch protection using `.github/branch-protection-setup.md`
 
 ## Testing
 

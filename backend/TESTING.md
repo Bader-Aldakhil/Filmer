@@ -315,11 +315,6 @@ The backend incorporates simulated stress and failure scenarios to ensure robust
 - **Purpose**: Uses `@MockBean` to simulate throwing a `DataAccessException` from repositories when the database becomes unavailable.
 - **Handling**: The `GlobalExceptionHandler` intercepts this exception, logs it appropriately, and gracefully returns a `500 Internal Server Error` DTO rather than crashing or exposing internal stack traces to the client.
 
-### 3. Simulated Database Timeout
-- **Location**: `src/test/java/com/filmer/integration/controller/RobustnessTest.java`
-- **Purpose**: Simulates a `QueryTimeoutException` from repository calls to validate timeout handling behavior under degraded database conditions.
-- **Handling**: The timeout is mapped to a graceful `500 Internal Server Error`, ensuring service stability and predictable client behavior.
-
 jobs:
   test:
     runs-on: ubuntu-latest
