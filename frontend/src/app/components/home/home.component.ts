@@ -15,22 +15,22 @@ export class HomeComponent {
     {
       icon: '🎬',
       title: 'Browse Movies',
-      description: 'Explore thousands of movies from the IMDb dataset'
+      description: 'Discover top-rated movies with smart filtering and infinite browsing'
     },
     {
-      icon: '🔍',
-      title: 'Search & Filter',
-      description: 'Find movies by genre, actor, or director'
+      icon: '📺',
+      title: 'Browse TV Shows',
+      description: 'Explore highly rated series with the same smooth browsing experience'
     },
     {
       icon: '🛒',
-      title: 'Rent Movies',
-      description: 'Add movies to your cart and complete payment'
+      title: 'Rentals',
+      description: 'Keep track of movies you have rented in one place'
     },
     {
-      icon: '📊',
-      title: 'Track Orders',
-      description: 'View your rental history and manage your account'
+      icon: '⭐',
+      title: 'My List',
+      description: 'Save favorite titles and quickly return to what you love'
     }
   ];
 }

@@ -177,6 +177,7 @@ INSERT INTO genres (name) VALUES
     ('Action'),
     ('Comedy'),
     ('Drama'),
+    ('Crime'),
     ('Horror'),
     ('Romance'),
     ('Sci-Fi'),
@@ -184,6 +185,35 @@ INSERT INTO genres (name) VALUES
     ('Documentary'),
     ('Animation'),
     ('Fantasy');
+
+-- Insert sample movies for local development and UI verification
+INSERT INTO movies (id, title, year, director, rating, num_votes, title_type) VALUES
+    ('tt0111161', 'The Shawshank Redemption', 1994, 'Frank Darabont', 9.3, 2947821, 'movie'),
+    ('tt0068646', 'The Godfather', 1972, 'Francis Ford Coppola', 9.2, 2056714, 'movie'),
+    ('tt0468569', 'The Dark Knight', 2008, 'Christopher Nolan', 9.0, 2927192, 'movie'),
+    ('tt0109830', 'Forrest Gump', 1994, 'Robert Zemeckis', 8.8, 2282000, 'movie'),
+    ('tt0133093', 'The Matrix', 1999, 'Lana Wachowski, Lilly Wachowski', 8.7, 2096000, 'movie'),
+    ('tt0120737', 'The Lord of the Rings: The Fellowship of the Ring', 2001, 'Peter Jackson', 8.9, 2035000, 'movie'),
+    ('tt1375666', 'Inception', 2010, 'Christopher Nolan', 8.8, 2604000, 'movie'),
+    ('tt6751668', 'Parasite', 2019, 'Bong Joon Ho', 8.5, 1023000, 'movie');
+
+-- Link sample movies to genres
+INSERT INTO genres_in_movies (genre_id, movie_id)
+SELECT g.id, map.movie_id
+FROM (
+    VALUES
+        ('Drama', 'tt0111161'),
+        ('Crime', 'tt0068646'),
+        ('Action', 'tt0468569'),
+        ('Drama', 'tt0109830'),
+        ('Sci-Fi', 'tt0133093'),
+        ('Fantasy', 'tt0120737'),
+        ('Sci-Fi', 'tt1375666'),
+        ('Thriller', 'tt1375666'),
+        ('Thriller', 'tt6751668'),
+        ('Drama', 'tt6751668')
+) AS map(genre_name, movie_id)
+JOIN genres g ON g.name = map.genre_name;
 
 -- ============================================================================
 -- NOTES

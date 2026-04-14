@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "MovieRental Web Application - Frontend (Angular)",
   "scripts": {
+    "prestart": "node scripts/generate-runtime-config.js",
+    "predev": "node scripts/generate-runtime-config.js",
+    "prebuild": "node scripts/generate-runtime-config.js",
     "ng": "ng",
     "start": "ng serve",
     "dev": "ng serve --open",

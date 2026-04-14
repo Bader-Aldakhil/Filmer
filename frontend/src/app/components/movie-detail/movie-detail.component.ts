@@ -6,6 +6,7 @@ import { MovieDetail } from '../../models/movie.model';
 import { ApiResponse } from '../../models/api-response.model';
 import { FavoritesService, FavoriteItem } from '../../services/favorites.service';
 import { TmdbService } from '../../services/tmdb.service';
+import { RentalService } from '../../services/rental.service';
 
 @Component({
     selector: 'app-movie-detail',
@@ -19,6 +20,7 @@ export class MovieDetailComponent implements OnInit {
     loading: boolean = false;
     error: string | null = null;
     isTvShow: boolean = false;
+    voteCountLabel: string | null = 'IMDb votes';
 
     // TMDB poster and backdrop
     tmdbPoster: string | null = null;
@@ -32,7 +34,8 @@ export class MovieDetailComponent implements OnInit {
         private route: ActivatedRoute,
         private apiService: ApiService,
         public favoritesService: FavoritesService,
-        private tmdbService: TmdbService
+        private tmdbService: TmdbService,
+        public rentalService: RentalService
     ) { }
 
     ngOnInit(): void {
@@ -51,10 +54,58 @@ export class MovieDetailComponent implements OnInit {
         this.loading = true;
         this.error = null;
 
+        if (id.startsWith('tmdb-movie-') || id.startsWith('tmdb-tv-')) {
+            const isTv = id.startsWith('tmdb-tv-');
+            const tmdbId = Number.parseInt(id.replace('tmdb-movie-', '').replace('tmdb-tv-', ''), 10);
+
+            if (Number.isNaN(tmdbId)) {
+                this.error = 'Invalid TMDB ID';
+                this.loading = false;
+                return;
+            }
+
+            this.tmdbService.getTmdbMediaDetail(tmdbId, isTv ? 'tv' : 'movie').subscribe({
+                next: (result) => {
+                    this.movie = result.detail;
+                    this.tmdbPoster = result.poster;
+                    this.tmdbBackdrop = result.backdrop;
+                    this.tmdbDescription = result.overview;
+                    this.castPhotos = result.castPhotos;
+
+                    this.tmdbService.getImdbRatingForTmdb(tmdbId, isTv ? 'tv' : 'movie').subscribe(imdbRating => {
+                        if (imdbRating !== undefined && this.movie) {
+                            this.movie.rating = imdbRating;
+                        }
+                    });
+
+                    this.tmdbService.getImdbVotesForTmdb(tmdbId, isTv ? 'tv' : 'movie').subscribe(imdbVotes => {
+                        if (!this.movie) {
+                            return;
+                        }
+                        if (imdbVotes !== undefined) {
+                            this.movie.numVotes = imdbVotes;
+                            this.voteCountLabel = 'IMDb votes';
+                        } else {
+                            this.movie.numVotes = undefined;
+                            this.voteCountLabel = null;
+                        }
+                    });
+                    this.loading = false;
+                },
+                error: (err: any) => {
+                    this.error = 'Failed to load movie details.';
+                    console.error(err);
+                    this.loading = false;
+                }
+            });
+            return;
+        }
+
         this.apiService.getMovieById(id).subscribe({
             next: (response: ApiResponse<MovieDetail>) => {
                 if (response.success && response.data) {
                     this.movie = response.data;
+                    this.voteCountLabel = this.movie?.numVotes ? 'IMDb votes' : null;
                     this.loadTmdbData(this.movie.id);
                     this.loadCastPhotos(this.movie.id);
                 } else {
@@ -121,5 +172,18 @@ export class MovieDetailComponent implements OnInit {
         };
 
         this.favoritesService.toggleFavorite(item);
+    }
+
+    rentNow(): void {
+        if (!this.movie) {
+            return;
+        }
+
+        this.rentalService.rent({
+            id: this.movie.id,
+            title: this.movie.title,
+            year: this.movie.year,
+            poster: this.tmdbPoster || undefined
+        });
     }
 }

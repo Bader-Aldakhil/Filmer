@@ -34,9 +34,9 @@
                     <div class="d-flex flex-wrap gap-3 mb-4 align-items-center text-white meta-row">
                         <div class="d-flex align-items-center gap-2">
                             <i class="bi bi-star-fill text-warning fs-5"></i>
-                            <span class="fw-bold fs-5 text-white">{{ movie.rating || 'N/A' }} <span
+                            <span class="fw-bold fs-5 text-white">{{ movie.rating ? (movie.rating | number:'1.1-1') : 'N/A' }} <span
                                     class="opacity-50 fs-6">/ 10</span></span>
-                            <span class="ms-2 opacity-75 fs-6">({{ movie.numVotes | number }} votes)</span>
+                            <span *ngIf="movie.numVotes && voteCountLabel" class="ms-2 opacity-75 fs-6">({{ movie.numVotes | number }} {{ voteCountLabel }})</span>
                         </div>
                         <span class="opacity-75 fs-5">{{ movie.year || 'N/A' }}</span>
                         <div class="badge border border-secondary text-white rounded-0 px-2 py-1">HD</div>
@@ -51,9 +51,10 @@
                     </div>
 
                     <div class="d-flex gap-3 mb-4 hero-actions">
-                        <button
-                            class="btn btn-light btn-lg px-5 py-2 fw-bold rounded-1 d-flex gap-2 align-items-center">
-                            <i class="bi bi-bag-fill fs-4 lh-1"></i> Rent
+                        <button class="btn btn-light btn-lg px-5 py-2 fw-bold rounded-1 d-flex gap-2 align-items-center"
+                            (click)="rentNow()" [disabled]="rentalService.isRented(movie.id)">
+                            <i class="bi bi-bag-fill fs-4 lh-1"></i>
+                            {{ rentalService.isRented(movie.id) ? 'Already Rented' : 'Rent Now' }}
                         </button>
                         <button
                             class="btn btn-outline-secondary text-white btn-lg px-4 py-2 fw-bold rounded-1 bg-dark bg-opacity-50"
@@ -98,7 +99,7 @@
                                     class="bi bi-person-fill"></i></h1>
                         </div>
                         <h6 class="text-white text-truncate m-0 fw-bold">{{ star.name }}</h6>
-                        <p class="text-muted small mt-1">Born: {{ star.birthYear || 'Unknown' }}</p>
+                        <p *ngIf="star.birthYear" class="text-muted small mt-1">Born: {{ star.birthYear }}</p>
                     </div>
                 </a>
             </div>

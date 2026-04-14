@@ -1,9 +1,8 @@
 # Stage 1: Build
 FROM eclipse-temurin:17-jdk-alpine AS builder
 WORKDIR /app
+RUN apk add --no-cache maven
 COPY pom.xml .
-COPY apache-maven-3.9.6 /opt/maven
-ENV PATH="/opt/maven/bin:${PATH}"
 RUN mvn dependency:go-offline -q
 COPY src ./src
 RUN mvn clean package -DskipTests -q
