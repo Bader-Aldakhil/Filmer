@@ -1,7 +1,7 @@
 <div class="rentals-page px-4">
 
   <!-- ── Page header ── -->
-  <div class="page-header mb-5 mt-2">
+  <div class="page-header mb-4 mt-2">
     <h1 class="page-title">My Library</h1>
     <p class="page-sub">Your purchased titles — watch ad-free, anytime.</p>
   </div>
@@ -73,13 +73,13 @@
 
         <a
           class="watch-btn"
-          [routerLink]="['/watch', item.movieId]">
+          [routerLink]="getContinueUrl(item)"
+          [queryParams]="getContinueParams(item)">
           <i class="bi bi-play-fill me-1"></i>
-          Watch Now
+          {{ progressMap[item.movieId] ? 'Continue Watching' : 'Watch Now' }}
         </a>
       </div>
 
     </div>
   </div>
-
 </div>

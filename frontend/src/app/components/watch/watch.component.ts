@@ -7,6 +7,7 @@ import { catchError, map, Observable, of, switchMap } from 'rxjs';
 import { ApiService, WatchAccessInfo } from '../../services/api.service';
 import { TmdbService, TvSeasonEpisodes, TvEpisodeDetail } from '../../services/tmdb.service';
 import { TrustUrlPipe } from '../../pipes/trust-url.pipe';
+import { ContinueWatchingService } from '../../services/continue-watching.service';
 
 @Component({
   selector: 'app-watch',
@@ -58,7 +59,8 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private apiService: ApiService,
-    private tmdbService: TmdbService
+    private tmdbService: TmdbService,
+    private continueWatchingService: ContinueWatchingService
   ) {}
 
   ngAfterViewInit(): void {
@@ -79,22 +81,40 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    const seasonParam = Number.parseInt(this.route.snapshot.queryParamMap.get('season') || '', 10);
-    const episodeParam = Number.parseInt(this.route.snapshot.queryParamMap.get('episode') || '', 10);
-    if (!Number.isNaN(seasonParam) && seasonParam > 0) {
-      this.season = seasonParam;
-    }
-    if (!Number.isNaN(episodeParam) && episodeParam > 0) {
-      this.episode = episodeParam;
-    }
+    const seasonParamStr = this.route.snapshot.queryParamMap.get('season');
+    const episodeParamStr = this.route.snapshot.queryParamMap.get('episode');
+    const seasonParam = Number.parseInt(seasonParamStr || '', 10);
+    const episodeParam = Number.parseInt(episodeParamStr || '', 10);
 
-    this.apiService.canWatch(this.movieId).subscribe({
-      next: (accessRes) => this.handleAccess(accessRes.data),
-      error: (err) => {
-        this.loading = false;
-        this.error = err?.error?.error?.message || 'Unable to verify playback access.';
+    const hasSpecificParams = !!seasonParamStr || !!episodeParamStr;
+
+    const checkAccess = () => {
+      this.apiService.canWatch(this.movieId).subscribe({
+        next: (accessRes) => this.handleAccess(accessRes.data),
+        error: (err) => {
+          this.loading = false;
+          this.error = err?.error?.error?.message || 'Unable to verify playback access.';
+        }
+      });
+    };
+
+    if (!hasSpecificParams) {
+      this.continueWatchingService.getProgress(this.movieId).subscribe(progress => {
+        if (progress) {
+          if (progress.season) this.season = progress.season;
+          if (progress.episode) this.episode = progress.episode;
+        }
+        checkAccess();
+      });
+    } else {
+      if (!Number.isNaN(seasonParam) && seasonParam > 0) {
+        this.season = seasonParam;
       }
-    });
+      if (!Number.isNaN(episodeParam) && episodeParam > 0) {
+        this.episode = episodeParam;
+      }
+      checkAccess();
+    }
   }
 
   goToLibrary(): void {
@@ -228,6 +248,8 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
         // Prefer embed URL (VidSrc iframe)
         if (grant?.embedUrl) {
           this.embedUrl = grant.embedUrl;
+          this.continueWatchingService.saveProgress(this.movieId, !!this.isSeries, this.season, this.episode);
+          
           // Load episode detail from TMDB if we have a series
           if (this.isSeries && this.tmdbTvId) {
             this.tmdbService.getTvEpisodeDetail(this.tmdbTvId, this.season, this.episode).subscribe((detail) => {
@@ -382,5 +404,20 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
       queryParamsHandling: 'merge',
       replaceUrl: true
     });
+  }
+
+  toggleFullscreen(): void {
+    const playerArea = document.querySelector('.player-area');
+    if (!playerArea) return;
+
+    if (!document.fullscreenElement) {
+      playerArea.requestFullscreen().catch((err) => {
+        console.error(`Error attempting to enable fullscreen mode: `, err);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
   }
 }

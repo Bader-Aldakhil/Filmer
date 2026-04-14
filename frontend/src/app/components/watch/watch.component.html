@@ -17,6 +17,9 @@
           <span *ngIf="episodeDetail?.name"> · {{ episodeDetail!.name }}</span>
         </span>
       </div>
+      <button *ngIf="!loading && !grantLoading && !error" class="btn btn-fullscreen ms-auto" (click)="toggleFullscreen()" title="Toggle Fullscreen">
+        <i class="bi bi-arrows-fullscreen"></i>
+      </button>
     </ng-container>
   </div>
 

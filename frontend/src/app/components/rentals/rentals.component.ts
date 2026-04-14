@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { TmdbService } from '../../services/tmdb.service';
+import { ContinueWatchingService, WatchProgress } from '../../services/continue-watching.service';
 import { LibraryItem } from '../../models/auth.model';
 import { forkJoin, of, Observable } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
@@ -23,15 +24,35 @@ export class RentalsComponent implements OnInit {
   posters: Record<string, string> = {};
   postersLoading = false;
 
-  constructor(private apiService: ApiService, private tmdbService: TmdbService) {}
+  progressMap: Record<string, WatchProgress> = {};
+
+  constructor(
+    private apiService: ApiService, 
+    private tmdbService: TmdbService,
+    private continueWatchingService: ContinueWatchingService
+  ) {}
 
   ngOnInit(): void {
     this.loading = true;
     this.apiService.getLibrary().subscribe({
       next: (res) => {
         this.items = res?.data?.items || [];
-        this.loading = false;
-        this.fetchPosters();
+        this.continueWatchingService.getAllProgress().subscribe({
+          next: (allProgress) => {
+            this.items.forEach(item => {
+              const prog = allProgress.find(p => p.movieId === item.movieId);
+              if (prog) {
+                this.progressMap[item.movieId] = prog;
+              }
+            });
+            this.loading = false;
+            this.fetchPosters();
+          },
+          error: () => {
+            this.loading = false;
+            this.fetchPosters();
+          }
+        });
       },
       error: (err) => {
         this.loading = false;
@@ -54,6 +75,18 @@ export class RentalsComponent implements OnInit {
     if (t.includes('miniseries') || t.includes('mini')) return 'Mini-Series';
     if (t.includes('tv') || t.includes('series')) return 'TV Show';
     return 'Movie';
+  }
+
+  getContinueUrl(item: LibraryItem): any[] {
+    return ['/watch', item.movieId];
+  }
+
+  getContinueParams(item: LibraryItem): any {
+    const prog = this.progressMap[item.movieId];
+    if (prog && prog.isSeries) {
+      return { season: prog.season || 1, episode: prog.episode || 1 };
+    }
+    return {};
   }
 
   private fetchPosters(): void {

@@ -200,4 +200,13 @@ export class ApiService {
       { ...this.WITH_CREDENTIALS, params }
     );
   }
+
+  saveWatchProgress(movieId: string, isSeries: boolean, season?: number, episode?: number): Observable<any> {
+    const payload = { movieId, isSeries, season, episode };
+    return this.http.post(`${this.API_BASE_URL}/library/progress`, payload, this.WITH_CREDENTIALS);
+  }
+
+  getAllWatchProgress(): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.API_BASE_URL}/library/progress`, this.WITH_CREDENTIALS);
+  }
 }

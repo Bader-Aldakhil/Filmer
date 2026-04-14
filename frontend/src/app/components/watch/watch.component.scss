@@ -131,8 +131,43 @@
 }
 
 /* ── Player wrapper ────────────────────────────── */
+.btn-fullscreen {
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 8px;
+  padding: 0.45rem 0.75rem;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
 .player-area {
   // full-width video container
+  &:fullscreen {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #000;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    .video-wrapper {
+      border-radius: 0;
+      box-shadow: none;
+      border: none;
+      max-height: 100vh;
+    }
+    
+    .episode-info-strip {
+      display: none; // hide series info strip in fullscreen
+    }
+  }
 }
 
 .video-wrapper {
