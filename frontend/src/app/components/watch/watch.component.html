@@ -17,7 +17,15 @@
           <span *ngIf="episodeDetail?.name"> · {{ episodeDetail!.name }}</span>
         </span>
       </div>
-      <button *ngIf="!loading && !grantLoading && !error" class="btn btn-fullscreen ms-auto" (click)="toggleFullscreen()" title="Toggle Fullscreen">
+      <div class="series-navigation d-flex gap-2 ms-auto me-3 align-items-center" *ngIf="isSeries && !loading && !grantLoading && !error">
+         <button class="btn btn-outline-light btn-sm px-3" [disabled]="episode <= 1" (click)="goToPrevEpisode()">
+           <i class="bi bi-chevron-left me-1"></i> Prev
+         </button>
+         <button class="btn btn-primary btn-sm px-3 ms-2" (click)="goToNextEpisode()">
+           Next <i class="bi bi-chevron-right ms-1"></i>
+         </button>
+      </div>
+      <button *ngIf="!loading && !grantLoading && !error" class="btn btn-fullscreen" [class.ms-auto]="!isSeries" (click)="toggleFullscreen()" title="Toggle Fullscreen">
         <i class="bi bi-arrows-fullscreen"></i>
       </button>
     </ng-container>

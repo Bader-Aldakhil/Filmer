@@ -137,6 +137,18 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadPlaybackGrant();
   }
 
+  goToNextEpisode(): void {
+    if (!this.isSeries) return;
+    this.episode++;
+    this.loadSeriesEpisode();
+  }
+
+  goToPrevEpisode(): void {
+    if (!this.isSeries || this.episode <= 1) return;
+    this.episode--;
+    this.loadSeriesEpisode();
+  }
+
   onSeasonSelect(season: number): void {
     if (!this.isSeries || season < 1 || this.season === season) return;
     this.season = season;
