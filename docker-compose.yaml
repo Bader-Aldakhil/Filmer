@@ -12,6 +12,10 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/filmer
       DB_USER: postgres
       DB_PASSWORD: filmer_dev_password
+      STREAMING_PROVIDER_MOVIE_TEMPLATE: https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4
+      STREAMING_PROVIDER_SERIES_TEMPLATE: https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4
+      STREAMING_PROVIDER_FALLBACK_MOVIE_TEMPLATE: https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4
+      STREAMING_PROVIDER_FALLBACK_SERIES_TEMPLATE: https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4
     ports:
       - "8080:8080"
     networks:

@@ -48,6 +48,10 @@ interface TmdbDetailResponse {
     vote_average?: number;
     vote_count?: number;
     genres?: TmdbGenre[];
+    seasons?: Array<{
+        season_number?: number;
+        episode_count?: number;
+    }>;
     overview?: string;
     poster_path?: string | null;
     backdrop_path?: string | null;
@@ -55,6 +59,31 @@ interface TmdbDetailResponse {
 
 interface TmdbExternalIdsResponse {
     imdb_id?: string | null;
+}
+
+interface TmdbFindResponse {
+    movie_results?: Array<{ id: number }>;
+    tv_results?: Array<{ id: number }>;
+}
+
+interface TmdbVideo {
+    key?: string;
+    site?: string;
+    type?: string;
+}
+
+interface TmdbVideosResponse {
+    results?: TmdbVideo[];
+}
+
+export interface TrailerSources {
+    embedUrl: string;
+    youtubeUrl: string;
+}
+
+export interface TvSeasonEpisodes {
+    seasonNumber: number;
+    episodeCount: number;
 }
 
 interface CinemetaMetaResponse {
@@ -392,6 +421,18 @@ export class TmdbService {
         );
     }
 
+    getImdbIdForTmdb(tmdbId: number, mediaType: 'movie' | 'tv'): Observable<string | null> {
+        const externalIdsUrl = `${this.baseUrl}/${mediaType}/${tmdbId}/external_ids?api_key=${this.apiKey}`;
+
+        return this.http.get<TmdbExternalIdsResponse>(externalIdsUrl).pipe(
+            map(response => {
+                const imdbId = response.imdb_id?.trim();
+                return imdbId || null;
+            }),
+            catchError(() => of(null))
+        );
+    }
+
     /**
      * Find a movie/TV show by IMDB ID and return the full cast with photos
      */
@@ -476,5 +517,74 @@ export class TmdbService {
                 }
             });
         });
+    }
+
+    resolveTmdbFromImdbId(imdbId: string): Observable<{ tmdbId: number; mediaType: 'movie' | 'tv' } | null> {
+        if (!imdbId) {
+            return of(null);
+        }
+
+        return this.http.get<TmdbFindResponse>(
+            `${this.baseUrl}/find/${imdbId}?api_key=${this.apiKey}&external_source=imdb_id`
+        ).pipe(
+            map((findResponse) => {
+                const movieResults = findResponse.movie_results || [];
+                const tvResults = findResponse.tv_results || [];
+                if (movieResults.length > 0) {
+                    return { tmdbId: movieResults[0].id, mediaType: 'movie' as const };
+                }
+                if (tvResults.length > 0) {
+                    return { tmdbId: tvResults[0].id, mediaType: 'tv' as const };
+                }
+                return null;
+            }),
+            catchError(() => of(null))
+        );
+    }
+
+    getTrailerEmbedUrl(tmdbId: number, mediaType: 'movie' | 'tv'): Observable<string | null> {
+        return this.getTrailerSources(tmdbId, mediaType).pipe(
+            map((sources) => sources?.embedUrl || null)
+        );
+    }
+
+    getTrailerSources(tmdbId: number, mediaType: 'movie' | 'tv'): Observable<TrailerSources | null> {
+        return this.http.get<TmdbVideosResponse>(
+            `${this.baseUrl}/${mediaType}/${tmdbId}/videos?api_key=${this.apiKey}`
+        ).pipe(
+            map((response) => {
+                const videos = response.results || [];
+                const trailer = videos.find(v =>
+                    (v.site || '').toLowerCase() === 'youtube' &&
+                    ((v.type || '').toLowerCase() === 'trailer' || (v.type || '').toLowerCase() === 'teaser')
+                );
+                if (!trailer?.key) {
+                    return null;
+                }
+                return {
+                    embedUrl: `https://www.youtube-nocookie.com/embed/${trailer.key}`,
+                    youtubeUrl: `https://www.youtube.com/watch?v=${trailer.key}`
+                };
+            }),
+            catchError(() => of(null))
+        );
+    }
+
+    getTvSeasonEpisodes(tmdbId: number): Observable<TvSeasonEpisodes[]> {
+        return this.http.get<TmdbDetailResponse>(
+            `${this.baseUrl}/tv/${tmdbId}?api_key=${this.apiKey}`
+        ).pipe(
+            map((response) => {
+                const seasons = response.seasons || [];
+                return seasons
+                    .filter((season) => (season.season_number || 0) > 0 && (season.episode_count || 0) > 0)
+                    .map((season) => ({
+                        seasonNumber: season.season_number as number,
+                        episodeCount: season.episode_count as number
+                    }))
+                    .sort((a, b) => a.seasonNumber - b.seasonNumber);
+            }),
+            catchError(() => of([]))
+        );
     }
 }

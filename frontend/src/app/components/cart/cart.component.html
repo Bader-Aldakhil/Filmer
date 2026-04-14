@@ -1,0 +1,37 @@
+<div class="movies-container px-4 cart-page">
+  <div class="title-section mb-4 mt-2 head">
+    <h1 class="display-4 fw-bold text-white">My Cart</h1>
+    <button *ngIf="cart.items.length" class="clear" (click)="clearAll()">Clear Cart</button>
+  </div>
+
+  <div *ngIf="loading" class="muted">Loading cart...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <div *ngIf="unauthorized" class="empty">
+    <h3>Please sign in first</h3>
+    <a routerLink="/auth" class="btn">Go to Login</a>
+  </div>
+
+  <div *ngIf="!loading && !unauthorized && !cart.items.length" class="empty">
+    <h3>Your cart is empty</h3>
+    <a routerLink="/movies" class="btn">Browse Movies</a>
+  </div>
+
+  <div class="items" *ngIf="!loading && cart.items.length">
+    <div class="item" *ngFor="let item of cart.items">
+      <div>
+        <h4>{{ item.title }}</h4>
+        <p>{{ item.year || 'N/A' }}</p>
+      </div>
+      <div class="price">${{ item.subtotal | number:'1.2-2' }}</div>
+      <button class="remove" (click)="remove(item.movieId)">Remove</button>
+    </div>
+
+    <div class="summary">
+      <div>Total ({{ cart.itemCount }} items)</div>
+      <div>${{ cart.totalPrice | number:'1.2-2' }}</div>
+    </div>
+
+    <button class="checkout" (click)="goCheckout()">Proceed to Checkout</button>
+  </div>
+</div>

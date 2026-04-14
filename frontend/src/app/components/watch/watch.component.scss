@@ -1,0 +1,100 @@
+.watch-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-bottom: 3rem;
+}
+
+.panel {
+  background: linear-gradient(180deg, #1a1a1a 0%, #141414 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+}
+
+.selector-panel h3 {
+  margin-top: 0;
+  margin-bottom: 0.8rem;
+}
+
+.season-list .list-group-item {
+  background: #0f0f0f;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.season-list .list-group-item.active {
+  background: var(--netflix-red);
+  border-color: var(--netflix-red);
+}
+
+.episode-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.episode-btn {
+  min-width: 70px;
+  font-weight: 700;
+}
+
+.source-not-found {
+  color: #f0f0f0;
+  border-style: dashed;
+}
+
+.error {
+  color: #ffb4b4;
+}
+
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #000;
+}
+
+.video-wrapper video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.watch-help {
+  margin-top: 0.9rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+  p {
+    margin: 0;
+    color: #c7c7c7;
+    font-size: 0.9rem;
+  }
+
+  .status-line {
+    margin-top: 0.45rem;
+    color: #ffe29a;
+  }
+}
+
+.btn-red {
+  border: 0;
+  border-radius: 8px;
+  background: var(--netflix-red);
+  color: #fff;
+  font-weight: 700;
+  padding: 0.55rem 0.9rem;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+@media (max-width: 720px) {
+  .episode-btn {
+    min-width: 56px;
+  }
+}

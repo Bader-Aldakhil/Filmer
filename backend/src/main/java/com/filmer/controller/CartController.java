@@ -2,14 +2,14 @@ package com.filmer.controller;
 
 import com.filmer.dto.request.AddToCartRequest;
 import com.filmer.dto.request.UpdateCartItemRequest;
+import com.filmer.dto.response.ApiErrorResponse;
 import com.filmer.dto.response.ApiResponse;
 import com.filmer.dto.response.CartResponse;
+import com.filmer.service.CartService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -18,8 +18,14 @@ import java.util.Map;
  * All endpoints require authentication.
  */
 @RestController
-@RequestMapping("/api/v1/cart")
+@RequestMapping({ "/api/v1/cart", "/api/cart" })
 public class CartController {
+
+    private final CartService cartService;
+
+    public CartController(CartService cartService) {
+        this.cartService = cartService;
+    }
 
     /**
      * Get the current shopping cart contents.
@@ -37,16 +43,14 @@ public class CartController {
      * </ul>
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<CartResponse>> viewCart(HttpSession session) {
-        // TODO: Implement cart retrieval logic
-        // 1. Verify customer is authenticated
-        // 2. Get cart from session
-        // 3. Calculate totals
-        CartResponse response = new CartResponse();
-        response.setItems(Collections.emptyList());
-        response.setItemCount(0);
-        response.setTotalPrice(BigDecimal.ZERO);
-        return ResponseEntity.status(501).body(ApiResponse.success(response));
+    public ResponseEntity<?> viewCart(HttpSession session) {
+        try {
+            CartResponse response = cartService.viewCart(session);
+            return ResponseEntity.ok(ApiResponse.success(response));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(401)
+                    .body(ApiErrorResponse.of("UNAUTHORIZED", e.getMessage()));
+        }
     }
 
     /**
@@ -74,24 +78,30 @@ public class CartController {
      * </ul>
      */
     @PostMapping("/items")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> addToCart(
+    public ResponseEntity<?> addToCart(
             @RequestBody AddToCartRequest request,
             HttpSession session) {
-        // TODO: Implement add to cart logic
-        // 1. Verify customer is authenticated
-        // 2. Validate movie exists
-        // 3. Add item to cart in session
-        // 4. Return updated cart
-        CartResponse cart = new CartResponse();
-        cart.setItems(Collections.emptyList());
-        cart.setItemCount(0);
-        cart.setTotalPrice(BigDecimal.ZERO);
-        
-        Map<String, Object> response = Map.of(
+        try {
+            CartResponse cart = cartService.addToCart(request, session);
+            Map<String, Object> response = Map.of(
                 "message", "Item added to cart",
-                "cart", cart
-        );
-        return ResponseEntity.status(501).body(ApiResponse.success(response));
+                "cart", cart);
+            return ResponseEntity.ok(ApiResponse.success(response));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(401)
+                    .body(ApiErrorResponse.of("UNAUTHORIZED", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            int status = e.getMessage().toLowerCase().contains("not found") ? 404 : 400;
+            return ResponseEntity.status(status)
+                    .body(ApiErrorResponse.of("VALIDATION_ERROR", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/add")
+    public ResponseEntity<?> addToCartLegacy(
+            @RequestBody AddToCartRequest request,
+            HttpSession session) {
+        return addToCart(request, session);
     }
 
     /**
@@ -124,25 +134,36 @@ public class CartController {
      * </ul>
      */
     @PutMapping("/items/{movieId}")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> updateCartItem(
+    public ResponseEntity<?> updateCartItem(
             @PathVariable String movieId,
             @RequestBody UpdateCartItemRequest request,
             HttpSession session) {
-        // TODO: Implement update cart item logic
-        // 1. Verify customer is authenticated
-        // 2. Verify item is in cart
-        // 3. Update quantity
-        // 4. Return updated cart
-        CartResponse cart = new CartResponse();
-        cart.setItems(Collections.emptyList());
-        cart.setItemCount(0);
-        cart.setTotalPrice(BigDecimal.ZERO);
-        
-        Map<String, Object> response = Map.of(
+        try {
+            CartResponse cart = cartService.updateCartItem(movieId, request, session);
+            Map<String, Object> response = Map.of(
                 "message", "Cart updated",
-                "cart", cart
-        );
-        return ResponseEntity.status(501).body(ApiResponse.success(response));
+                "cart", cart);
+            return ResponseEntity.ok(ApiResponse.success(response));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(401)
+                    .body(ApiErrorResponse.of("UNAUTHORIZED", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            int status = e.getMessage().toLowerCase().contains("not in cart") ? 404 : 400;
+            return ResponseEntity.status(status)
+                    .body(ApiErrorResponse.of("VALIDATION_ERROR", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/update")
+    public ResponseEntity<?> updateCartItemLegacy(
+            @RequestBody LegacyUpdateCartRequest request,
+            HttpSession session) {
+        if (request == null) {
+            return ResponseEntity.status(400)
+                    .body(ApiErrorResponse.of("VALIDATION_ERROR", "Request body is required"));
+        }
+        UpdateCartItemRequest update = new UpdateCartItemRequest(request.getQuantity());
+        return updateCartItem(request.getMovieId(), update, session);
     }
 
     /**
@@ -168,23 +189,34 @@ public class CartController {
      * </ul>
      */
     @DeleteMapping("/items/{movieId}")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> removeFromCart(
+    public ResponseEntity<?> removeFromCart(
             @PathVariable String movieId,
             HttpSession session) {
-        // TODO: Implement remove from cart logic
-        // 1. Verify customer is authenticated
-        // 2. Remove item from cart
-        // 3. Return updated cart
-        CartResponse cart = new CartResponse();
-        cart.setItems(Collections.emptyList());
-        cart.setItemCount(0);
-        cart.setTotalPrice(BigDecimal.ZERO);
-        
-        Map<String, Object> response = Map.of(
+        try {
+            CartResponse cart = cartService.removeFromCart(movieId, session);
+            Map<String, Object> response = Map.of(
                 "message", "Item removed from cart",
-                "cart", cart
-        );
-        return ResponseEntity.status(501).body(ApiResponse.success(response));
+                "cart", cart);
+            return ResponseEntity.ok(ApiResponse.success(response));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(401)
+                    .body(ApiErrorResponse.of("UNAUTHORIZED", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            int status = e.getMessage().toLowerCase().contains("not in cart") ? 404 : 400;
+            return ResponseEntity.status(status)
+                    .body(ApiErrorResponse.of("VALIDATION_ERROR", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/remove")
+    public ResponseEntity<?> removeFromCartLegacy(
+            @RequestBody LegacyRemoveCartRequest request,
+            HttpSession session) {
+        if (request == null || request.getMovieId() == null || request.getMovieId().trim().isEmpty()) {
+            return ResponseEntity.status(400)
+                    .body(ApiErrorResponse.of("VALIDATION_ERROR", "movieId is required"));
+        }
+        return removeFromCart(request.getMovieId(), session);
     }
 
     /**
@@ -203,20 +235,54 @@ public class CartController {
      * </ul>
      */
     @DeleteMapping
-    public ResponseEntity<ApiResponse<Map<String, Object>>> clearCart(HttpSession session) {
-        // TODO: Implement clear cart logic
-        // 1. Verify customer is authenticated
-        // 2. Clear cart in session
-        // 3. Return empty cart
-        CartResponse cart = new CartResponse();
-        cart.setItems(Collections.emptyList());
-        cart.setItemCount(0);
-        cart.setTotalPrice(BigDecimal.ZERO);
-        
-        Map<String, Object> response = Map.of(
-                "message", "Cart cleared",
-                "cart", cart
-        );
-        return ResponseEntity.status(501).body(ApiResponse.success(response));
+    public ResponseEntity<?> clearCart(HttpSession session) {
+        try {
+            CartResponse cart = cartService.clearCart(session);
+            Map<String, Object> response = Map.of(
+                    "message", "Cart cleared",
+                    "cart", cart);
+            return ResponseEntity.ok(ApiResponse.success(response));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(401)
+                    .body(ApiErrorResponse.of("UNAUTHORIZED", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/clear")
+    public ResponseEntity<?> clearCartLegacy(HttpSession session) {
+        return clearCart(session);
+    }
+
+    public static class LegacyUpdateCartRequest {
+        private String movieId;
+        private Integer quantity;
+
+        public String getMovieId() {
+            return movieId;
+        }
+
+        public void setMovieId(String movieId) {
+            this.movieId = movieId;
+        }
+
+        public Integer getQuantity() {
+            return quantity;
+        }
+
+        public void setQuantity(Integer quantity) {
+            this.quantity = quantity;
+        }
+    }
+
+    public static class LegacyRemoveCartRequest {
+        private String movieId;
+
+        public String getMovieId() {
+            return movieId;
+        }
+
+        public void setMovieId(String movieId) {
+            this.movieId = movieId;
+        }
     }
 }

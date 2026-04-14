@@ -1,0 +1,48 @@
+<div class="movies-container px-4 orders-page">
+  <div class="title-section mb-4 mt-2">
+    <h1 class="display-4 fw-bold text-white">My Orders</h1>
+  </div>
+  <div *ngIf="loading" class="panel">Loading orders...</div>
+  <div *ngIf="error" class="panel error">{{ error }}</div>
+
+  <div class="grid" *ngIf="!loading">
+    <div class="panel">
+      <h3>Order History</h3>
+      <button class="order" *ngFor="let order of orders" (click)="selectOrder(order.orderId)">
+        <div>#{{ order.orderId }} · {{ order.orderDate | date:'mediumDate' }}</div>
+        <strong>${{ order.totalPrice | number:'1.2-2' }}</strong>
+      </button>
+      <p *ngIf="!orders.length" class="muted">No orders found.</p>
+    </div>
+
+    <div class="panel" *ngIf="selectedOrder">
+      <h3>Order #{{ selectedOrder.orderId }}</h3>
+      <div *ngFor="let item of selectedOrder.items" class="line">
+        <span>
+          {{ item.title }}
+          <a class="watch-link" [routerLink]="['/watch', item.movieId]">Watch</a>
+        </span>
+        <strong>${{ item.price * item.quantity | number:'1.2-2' }}</strong>
+      </div>
+      <div class="total">
+        <span>Total</span>
+        <strong>${{ selectedOrder.totalPrice | number:'1.2-2' }}</strong>
+      </div>
+
+      <div class="meta" *ngIf="tracking">
+        <div>Status: <strong>{{ tracking.currentStatus }}</strong></div>
+        <div>Tracking: {{ tracking.trackingNumber }}</div>
+      </div>
+
+      <div class="meta" *ngIf="refund">
+        <div>Refund Status: <strong>{{ refund.refundStatus }}</strong></div>
+        <div>Refund Amount: ${{ refund.refundAmount | number:'1.2-2' }}</div>
+      </div>
+
+      <div class="cancel-row">
+        <input [(ngModel)]="cancelReason" placeholder="Cancellation reason" />
+        <button (click)="cancel(selectedOrder.orderId)">Cancel Order</button>
+      </div>
+    </div>
+  </div>
+</div>

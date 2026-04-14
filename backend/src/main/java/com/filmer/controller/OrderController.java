@@ -4,11 +4,14 @@ import com.filmer.dto.response.ApiResponse;
 import com.filmer.dto.response.OrderDetailResponse;
 import com.filmer.dto.response.OrderListItemResponse;
 import com.filmer.dto.response.PaginatedResponse;
+import com.filmer.dto.response.ApiErrorResponse;
+import com.filmer.service.OrderService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * Controller for order-related endpoints.
@@ -18,6 +21,12 @@ import java.util.Collections;
 @RestController
 @RequestMapping("/api/v1/orders")
 public class OrderController {
+
+    private final OrderService orderService;
+
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
 
     /**
      * Get order history for the authenticated customer.
@@ -43,18 +52,17 @@ public class OrderController {
      * </ul>
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<PaginatedResponse<OrderListItemResponse>>> listOrders(
+    public ResponseEntity<?> listOrders(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size,
             HttpSession session) {
-        // TODO: Implement order listing logic
-        // 1. Verify customer is authenticated
-        // 2. Query orders for customer with pagination
-        // 3. Map to DTOs with item counts and totals
-        PaginatedResponse<OrderListItemResponse> response = new PaginatedResponse<>(
-                Collections.emptyList(), page, size, 0
-        );
-        return ResponseEntity.status(501).body(ApiResponse.success(response));
+        try {
+            PaginatedResponse<OrderListItemResponse> response = orderService.listOrders(page, size, session);
+            return ResponseEntity.ok(ApiResponse.success(response));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(401)
+                    .body(ApiErrorResponse.of("UNAUTHORIZED", e.getMessage()));
+        }
     }
 
     /**
@@ -81,17 +89,107 @@ public class OrderController {
      * </ul>
      */
     @GetMapping("/{orderId}")
-    public ResponseEntity<ApiResponse<OrderDetailResponse>> getOrderDetails(
+    public ResponseEntity<?> getOrderDetails(
             @PathVariable Long orderId,
             HttpSession session) {
-        // TODO: Implement order detail retrieval logic
-        // 1. Verify customer is authenticated
-        // 2. Query order by ID
-        // 3. Verify order belongs to authenticated customer
-        // 4. Return 404 if not found, 403 if wrong customer
-        // 5. Map entity to DTO
-        OrderDetailResponse response = new OrderDetailResponse();
-        response.setOrderId(orderId);
-        return ResponseEntity.status(501).body(ApiResponse.success(response));
+        try {
+            OrderDetailResponse response = orderService.getOrderDetails(orderId, session);
+            return ResponseEntity.ok(ApiResponse.success(response));
+        } catch (SecurityException e) {
+            if ("Forbidden".equalsIgnoreCase(e.getMessage())) {
+                return ResponseEntity.status(403)
+                        .body(ApiErrorResponse.of("FORBIDDEN", "Order belongs to another customer"));
+            }
+            return ResponseEntity.status(401)
+                    .body(ApiErrorResponse.of("UNAUTHORIZED", e.getMessage()));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(404)
+                    .body(ApiErrorResponse.of("NOT_FOUND", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400)
+                    .body(ApiErrorResponse.of("VALIDATION_ERROR", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/cancel")
+    public ResponseEntity<?> cancelOrder(
+            @RequestBody(required = false) Map<String, String> request,
+            HttpSession session) {
+        try {
+            if (request == null || request.get("orderId") == null) {
+                return ResponseEntity.status(400)
+                        .body(ApiErrorResponse.of("VALIDATION_ERROR", "orderId is required"));
+            }
+
+            Long orderId = Long.valueOf(request.get("orderId"));
+            String reason = request.get("reason");
+            Map<String, Object> response = orderService.cancelOrder(orderId, reason, session);
+            return ResponseEntity.ok(ApiResponse.success(response));
+        } catch (NumberFormatException e) {
+            return ResponseEntity.status(400)
+                    .body(ApiErrorResponse.of("VALIDATION_ERROR", "orderId must be a valid number"));
+        } catch (SecurityException e) {
+            if ("Forbidden".equalsIgnoreCase(e.getMessage())) {
+                return ResponseEntity.status(403)
+                        .body(ApiErrorResponse.of("FORBIDDEN", "Order belongs to another customer"));
+            }
+            return ResponseEntity.status(401)
+                    .body(ApiErrorResponse.of("UNAUTHORIZED", e.getMessage()));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(404)
+                    .body(ApiErrorResponse.of("NOT_FOUND", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(400)
+                    .body(ApiErrorResponse.of("INVALID_OPERATION", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400)
+                    .body(ApiErrorResponse.of("VALIDATION_ERROR", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{orderId}/refund")
+    public ResponseEntity<?> getRefundStatus(
+            @PathVariable Long orderId,
+            HttpSession session) {
+        try {
+            Map<String, Object> response = orderService.getRefundStatus(orderId, session);
+            return ResponseEntity.ok(ApiResponse.success(response));
+        } catch (SecurityException e) {
+            if ("Forbidden".equalsIgnoreCase(e.getMessage())) {
+                return ResponseEntity.status(403)
+                        .body(ApiErrorResponse.of("FORBIDDEN", "Order belongs to another customer"));
+            }
+            return ResponseEntity.status(401)
+                    .body(ApiErrorResponse.of("UNAUTHORIZED", e.getMessage()));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(404)
+                    .body(ApiErrorResponse.of("NOT_FOUND", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400)
+                    .body(ApiErrorResponse.of("VALIDATION_ERROR", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{orderId}/track")
+    public ResponseEntity<?> trackOrder(
+            @PathVariable Long orderId,
+            HttpSession session) {
+        try {
+            Map<String, Object> response = orderService.trackOrder(orderId, session);
+            return ResponseEntity.ok(ApiResponse.success(response));
+        } catch (SecurityException e) {
+            if ("Forbidden".equalsIgnoreCase(e.getMessage())) {
+                return ResponseEntity.status(403)
+                        .body(ApiErrorResponse.of("FORBIDDEN", "Order belongs to another customer"));
+            }
+            return ResponseEntity.status(401)
+                    .body(ApiErrorResponse.of("UNAUTHORIZED", e.getMessage()));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(404)
+                    .body(ApiErrorResponse.of("NOT_FOUND", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400)
+                    .body(ApiErrorResponse.of("VALIDATION_ERROR", e.getMessage()));
+        }
     }
 }

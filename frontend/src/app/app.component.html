@@ -5,12 +5,13 @@
       <nav class="nav-menu">
         <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
         <a routerLink="/movies" routerLinkActive="active">Movies</a>
-        <li class="nav-item">
-          <a class="nav-link px-3 opacity-75 hover-op-100" routerLink="/tvshows"
-            routerLinkActive="active opacity-100 fw-bold">TV Shows</a>
-        </li>
-        <a routerLink="/rentals" routerLinkActive="active">Rentals</a>
+        <a routerLink="/tvshows" routerLinkActive="active">TV Shows</a>
+        <a *ngIf="authState.user()" routerLink="/rentals" routerLinkActive="active">My Rentals</a>
+        <a *ngIf="authState.user()" routerLink="/cart" routerLinkActive="active">Cart</a>
+        <a *ngIf="authState.user()" routerLink="/orders" routerLinkActive="active">Orders</a>
         <a routerLink="/favorites" routerLinkActive="active">My List</a>
+        <a *ngIf="!authState.user()" routerLink="/auth" routerLinkActive="active">Login</a>
+        <button *ngIf="authState.user()" class="logout-btn" (click)="logout()">Logout</button>
       </nav>
     </div>
   </header>

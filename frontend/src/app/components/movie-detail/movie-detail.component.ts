@@ -6,7 +6,8 @@ import { MovieDetail } from '../../models/movie.model';
 import { ApiResponse } from '../../models/api-response.model';
 import { FavoritesService, FavoriteItem } from '../../services/favorites.service';
 import { TmdbService } from '../../services/tmdb.service';
-import { RentalService } from '../../services/rental.service';
+import { Router } from '@angular/router';
+import { Observable, of, switchMap, map, catchError } from 'rxjs';
 
 @Component({
     selector: 'app-movie-detail',
@@ -35,8 +36,14 @@ export class MovieDetailComponent implements OnInit {
         private apiService: ApiService,
         public favoritesService: FavoritesService,
         private tmdbService: TmdbService,
-        public rentalService: RentalService
+        private router: Router
     ) { }
+
+    cartLoading = false;
+    cartMessage: string | null = null;
+    isInCart = false;
+    hasWatchAccess = false;
+    resolvedCatalogMovieId: string | null = null;
 
     ngOnInit(): void {
         this.isTvShow = this.route.snapshot.url[0]?.path === 'tvshows';
@@ -90,6 +97,7 @@ export class MovieDetailComponent implements OnInit {
                             this.voteCountLabel = null;
                         }
                     });
+                    this.syncInCartState();
                     this.loading = false;
                 },
                 error: (err: any) => {
@@ -108,6 +116,7 @@ export class MovieDetailComponent implements OnInit {
                     this.voteCountLabel = this.movie?.numVotes ? 'IMDb votes' : null;
                     this.loadTmdbData(this.movie.id);
                     this.loadCastPhotos(this.movie.id);
+                    this.syncInCartState();
                 } else {
                     this.error = response.message || 'Movie not found';
                 }
@@ -178,12 +187,112 @@ export class MovieDetailComponent implements OnInit {
         if (!this.movie) {
             return;
         }
+        if (this.isInCart) {
+            return;
+        }
 
-        this.rentalService.rent({
-            id: this.movie.id,
-            title: this.movie.title,
-            year: this.movie.year,
-            poster: this.tmdbPoster || undefined
+        this.cartLoading = true;
+        this.cartMessage = null;
+
+        this.resolveCatalogMovieId(this.movie.id).subscribe({
+            next: (catalogId) => {
+                if (!catalogId) {
+                    this.cartLoading = false;
+                    this.cartMessage = 'This title is not available for rental in our catalog yet.';
+                    return;
+                }
+                this.resolvedCatalogMovieId = catalogId;
+                this.addToCartByMovieId(catalogId);
+            },
+            error: () => {
+                this.cartLoading = false;
+                this.cartMessage = 'Could not add this title to cart.';
+            }
         });
+    }
+
+    private addToCartByMovieId(movieId: string): void {
+        const payload = this.movie
+            ? {
+                title: this.movie.title,
+                year: this.movie.year,
+                titleType: this.isTvShow ? 'tvSeries' : 'movie',
+                rating: this.movie.rating,
+                numVotes: this.movie.numVotes
+            }
+            : undefined;
+
+        this.apiService.addToCart(movieId, 1, payload).subscribe({
+            next: () => {
+                this.cartLoading = false;
+                this.cartMessage = 'Added to cart.';
+                this.isInCart = true;
+            },
+            error: (err) => {
+                this.cartLoading = false;
+                if (err?.status === 401) {
+                    this.router.navigate(['/auth']);
+                    return;
+                }
+
+                if (err?.status === 404) {
+                    this.cartMessage = 'This title is not available for rental in our catalog yet.';
+                    return;
+                }
+
+                this.cartMessage = err?.error?.error?.message || 'Could not add to cart.';
+            }
+        });
+    }
+
+    private resolveCatalogMovieId(movieId: string): Observable<string | null> {
+        if (movieId.startsWith('tmdb-movie-') || movieId.startsWith('tmdb-tv-')) {
+            const mediaType: 'movie' | 'tv' = movieId.startsWith('tmdb-tv-') ? 'tv' : 'movie';
+            const tmdbId = Number.parseInt(movieId.replace('tmdb-movie-', '').replace('tmdb-tv-', ''), 10);
+            if (Number.isNaN(tmdbId)) {
+                return of(null);
+            }
+            return this.tmdbService.getImdbIdForTmdb(tmdbId, mediaType).pipe(
+                map((imdbId) => imdbId || this.buildSyntheticCatalogId(tmdbId, mediaType))
+            );
+        }
+        return of(movieId);
+    }
+
+    private buildSyntheticCatalogId(tmdbId: number, mediaType: 'movie' | 'tv'): string {
+        const prefix = mediaType === 'tv' ? 's' : 'm';
+        const normalized = String(Math.abs(tmdbId)).slice(-9);
+        return `${prefix}${normalized}`;
+    }
+
+    private syncInCartState(): void {
+        if (!this.movie) {
+            this.isInCart = false;
+            this.hasWatchAccess = false;
+            return;
+        }
+
+        this.resolveCatalogMovieId(this.movie.id)
+            .pipe(
+                switchMap((catalogId) => {
+                    this.resolvedCatalogMovieId = catalogId;
+                    if (!catalogId) {
+                        return of(false);
+                    }
+                    return this.apiService.getCart().pipe(
+                        switchMap((res) => {
+                            this.isInCart = (res?.data?.items || []).some(item => item.movieId === catalogId);
+                            return this.apiService.canWatch(catalogId).pipe(
+                                map((watchRes) => !!watchRes?.data?.hasAccess),
+                                catchError(() => of(false))
+                            );
+                        }),
+                        catchError(() => of(false))
+                    );
+                })
+            )
+            .subscribe((hasAccess) => {
+                this.hasWatchAccess = hasAccess;
+            });
     }
 }

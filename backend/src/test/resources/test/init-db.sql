@@ -193,8 +193,8 @@ INSERT INTO stars_in_movies (star_id, movie_id) VALUES
 
 -- Insert test credit cards
 INSERT INTO creditcards (id, first_name, last_name, expiration) VALUES
-('4111111111111111', 'John', 'Doe', '2025-12-31'),
-('5555555555554444', 'Jane', 'Smith', '2026-06-30');
+('4111111111111111', 'John', 'Doe', '2028-12-31'),
+('5555555555554444', 'Jane', 'Smith', '2028-06-30');
 
 -- Insert test customers
 INSERT INTO customers (first_name, last_name, cc_id, address, email, password) VALUES

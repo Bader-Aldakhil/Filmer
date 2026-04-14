@@ -1,15 +1,15 @@
 package com.filmer.controller;
 
 import com.filmer.dto.request.CheckoutRequest;
+import com.filmer.dto.response.ApiErrorResponse;
 import com.filmer.dto.response.ApiResponse;
 import com.filmer.dto.response.CheckoutResponse;
+import com.filmer.service.OrderService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Collections;
+import java.util.Map;
 
 /**
  * Controller for checkout endpoints.
@@ -19,6 +19,12 @@ import java.util.Collections;
 @RestController
 @RequestMapping("/api/v1/checkout")
 public class CheckoutController {
+
+    private final OrderService orderService;
+
+    public CheckoutController(OrderService orderService) {
+        this.orderService = orderService;
+    }
 
     /**
      * Process the checkout with payment information.
@@ -54,23 +60,24 @@ public class CheckoutController {
      * </ul>
      */
     @PostMapping
-    public ResponseEntity<ApiResponse<CheckoutResponse>> processCheckout(
+    public ResponseEntity<?> processCheckout(
             @RequestBody CheckoutRequest request,
             HttpSession session) {
-        // TODO: Implement checkout logic
-        // 1. Verify customer is authenticated
-        // 2. Verify cart is not empty
-        // 3. Validate credit card information against database
-        // 4. Verify card is not expired
-        // 5. Create sales records for each cart item
-        // 6. Clear the cart
-        // 7. Return order confirmation
-        CheckoutResponse response = new CheckoutResponse();
-        response.setOrderId(12345L);
-        response.setMessage("Order placed successfully");
-        response.setItems(Collections.emptyList());
-        response.setTotalPrice(BigDecimal.ZERO);
-        response.setOrderDate(LocalDate.now());
-        return ResponseEntity.status(501).body(ApiResponse.success(response));
+        try {
+            CheckoutResponse response = orderService.processCheckout(request, session);
+            return ResponseEntity.ok(ApiResponse.success(response));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(401)
+                    .body(ApiErrorResponse.of("UNAUTHORIZED", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(402)
+                .body(ApiErrorResponse.of(
+                    "PAYMENT_FAILED",
+                    "Credit card validation failed",
+                    Map.of("reason", e.getMessage())));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400)
+                    .body(ApiErrorResponse.of("VALIDATION_ERROR", e.getMessage()));
+        }
     }
 }

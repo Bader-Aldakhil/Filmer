@@ -4,30 +4,10 @@
     <div class="hero-content">
       <h1 class="hero-title">Unlimited movies, TV shows, and more.</h1>
       <p class="hero-subtitle">Watch anywhere. Cancel anytime.</p>
-      <p class="hero-tagline">Ready to watch? Explore our massive catalog of IMDb data.</p>
       <div class="hero-actions">
         <button routerLink="/movies" class="btn btn-primary btn-lg rounded-0 px-5 py-3 fs-4 fw-bold shadow">
           Browse Movies <i class="bi bi-chevron-right"></i>
         </button>
-      </div>
-    </div>
-  </div>
-
-  <div class="container my-5 py-5">
-    <div class="row text-center mb-5 pb-4">
-      <h2 class="display-5 fw-bold mb-3">Explore the Filmer Database</h2>
-      <p class="lead text-muted">Powered by Spring Boot, Angular 17, and millions of rows of IMDb data.</p>
-    </div>
-
-    <div class="row g-4 pb-5">
-      <div *ngFor="let feature of features" class="col-md-4">
-        <div class="card bg-dark text-white border-secondary h-100 feature-card text-center p-4">
-          <div class="card-body">
-            <div class="display-3 mb-4">{{ feature.icon }}</div>
-            <h3 class="card-title h4 fw-bold">{{ feature.title }}</h3>
-            <p class="card-text text-muted mt-3">{{ feature.description }}</p>
-          </div>
-        </div>
       </div>
     </div>
   </div>
