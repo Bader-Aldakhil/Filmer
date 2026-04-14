@@ -2,99 +2,238 @@
   max-width: 1200px;
   margin: 0 auto;
   padding-bottom: 3rem;
+  font-family: 'Inter', 'Outfit', sans-serif;
 }
 
+/* ── Header breadcrumb ─────────────────────────── */
+.watch-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  margin-bottom: 1.25rem;
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: #ccc;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  text-decoration: none;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+  }
+}
+
+.sep {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 1.1rem;
+}
+
+.header-poster {
+  width: 36px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: 5px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.header-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ep-badge {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #e50914;
+  background: rgba(229, 9, 20, 0.12);
+  border: 1px solid rgba(229, 9, 20, 0.3);
+  border-radius: 6px;
+  padding: 0.2rem 0.55rem;
+  white-space: nowrap;
+}
+
+/* ── Panel base ────────────────────────────────── */
 .panel {
   background: linear-gradient(180deg, #1a1a1a 0%, #141414 100%);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 1rem;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+  border-radius: 14px;
+  padding: 1.25rem;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
+  color: #e0e0e0;
 }
 
-.selector-panel h3 {
-  margin-top: 0;
-  margin-bottom: 0.8rem;
+/* ── Season / episode selector ─────────────────── */
+.selector-panel h3.selector-title {
+  margin: 0 0 0.8rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.55);
 }
 
 .season-list .list-group-item {
   background: #0f0f0f;
   color: #fff;
-  border-color: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.1);
+  font-size: 0.9rem;
+  transition: background 0.15s;
+
+  &:hover:not(.active) {
+    background: #1c1c1c;
+  }
 }
 
 .season-list .list-group-item.active {
-  background: var(--netflix-red);
-  border-color: var(--netflix-red);
+  background: #e50914;
+  border-color: #e50914;
+  font-weight: 700;
 }
 
 .episode-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.6rem;
+  gap: 0.55rem;
 }
 
 .episode-btn {
-  min-width: 70px;
+  min-width: 62px;
   font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: 8px !important;
+  transition: transform 0.1s;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &.btn-danger {
+    box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.4);
+  }
 }
 
-.source-not-found {
-  color: #f0f0f0;
-  border-style: dashed;
-}
-
-.error {
-  color: #ffb4b4;
+/* ── Player wrapper ────────────────────────────── */
+.player-area {
+  // full-width video container
 }
 
 .video-wrapper {
   position: relative;
   width: 100%;
-  padding-top: 56.25%;
-  border-radius: 8px;
+  padding-top: 56.25%; /* 16:9 */
+  border-radius: 12px;
   overflow: hidden;
   background: #000;
-}
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
 
-.video-wrapper video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.watch-help {
-  margin-top: 0.9rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-
-  p {
-    margin: 0;
-    color: #c7c7c7;
-    font-size: 0.9rem;
-  }
-
-  .status-line {
-    margin-top: 0.45rem;
-    color: #ffe29a;
+  iframe,
+  video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
   }
 }
 
+/* ── Episode detail strip ──────────────────────── */
+.episode-info-strip {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+}
+
+.ep-still {
+  width: 160px;
+  min-width: 160px;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.ep-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.ep-overview {
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.55;
+}
+
+/* ── Error / source not found ──────────────────── */
+.error {
+  color: #ffb4b4;
+  border-color: rgba(229, 9, 20, 0.3);
+}
+
+.source-not-found {
+  color: #a0a0a0;
+  border-style: dashed;
+}
+
+/* ── Watch help ────────────────────────────────── */
+.watch-help p {
+  margin: 0;
+  color: #c7c7c7;
+  font-size: 0.9rem;
+}
+
+.status-line {
+  color: #ffe29a;
+}
+
+/* ── Red button ────────────────────────────────── */
 .btn-red {
   border: 0;
   border-radius: 8px;
-  background: var(--netflix-red);
+  background: #e50914;
   color: #fff;
   font-weight: 700;
-  padding: 0.55rem 0.9rem;
+  padding: 0.6rem 1.1rem;
   cursor: pointer;
   text-decoration: none;
   display: inline-block;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #f40612;
+  }
 }
 
-@media (max-width: 720px) {
+/* ── Responsive ────────────────────────────────── */
+@media (max-width: 768px) {
+  .ep-still {
+    display: none;
+  }
+
+  .header-title {
+    max-width: 180px;
+  }
+
   .episode-btn {
-    min-width: 56px;
+    min-width: 52px;
   }
 }

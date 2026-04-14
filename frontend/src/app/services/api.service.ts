@@ -27,9 +27,10 @@ export interface PlaybackGrant {
   season?: number;
   episode?: number;
   provider: string;
-  streamUrl: string;
+  streamUrl: string | null;
   contentType?: string;
-  fallbackUrl?: string;
+  embedUrl?: string | null;
+  fallbackUrl?: string | null;
   expiresAt: string;
 }
 /**

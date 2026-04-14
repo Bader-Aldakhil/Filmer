@@ -2,16 +2,16 @@ import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } fr
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import Hls from 'hls.js/dist/hls.min.js';
 import { catchError, map, Observable, of, switchMap } from 'rxjs';
 
 import { ApiService, WatchAccessInfo } from '../../services/api.service';
-import { TmdbService, TvSeasonEpisodes } from '../../services/tmdb.service';
+import { TmdbService, TvSeasonEpisodes, TvEpisodeDetail } from '../../services/tmdb.service';
+import { TrustUrlPipe } from '../../pipes/trust-url.pipe';
 
 @Component({
   selector: 'app-watch',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, TrustUrlPipe],
   templateUrl: './watch.component.html',
   styleUrls: ['./watch.component.scss']
 })
@@ -21,7 +21,6 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
   set videoPlayerRef(ref: ElementRef<HTMLVideoElement> | undefined) {
     this.videoPlayer = ref;
     if (ref && this.streamUrl) {
-      // Attach only after the DOM has materialized the video node.
       setTimeout(() => this.attachPlayer(), 0);
     }
   }
@@ -40,11 +39,20 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
   currentEpisodes: number[] = [];
   private seasonEpisodeMeta: TvSeasonEpisodes[] = [];
   grantExpiresAt: string | null = null;
+
+  // Stream / embed
   streamUrl: string | null = null;
+  embedUrl: string | null = null;
   streamType = 'video/mp4';
   playerStatus: string | null = null;
   private hls: any = null;
   private loadTimeout: any = null;
+
+  // Context metadata
+  movieTitle: string | null = null;
+  moviePoster: string | null = null;
+  episodeDetail: TvEpisodeDetail | null = null;
+  private tmdbTvId: number | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -94,22 +102,23 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   loadSeriesEpisode(): void {
-    if (!this.isSeries) {
-      return;
-    }
+    if (!this.isSeries) return;
     if (!Number.isFinite(this.season) || this.season < 1 || !Number.isFinite(this.episode) || this.episode < 1) {
       this.error = 'Season and episode must be positive numbers.';
       return;
     }
     this.syncSeriesQuery();
+    // Load episode detail from TMDB
+    if (this.tmdbTvId) {
+      this.tmdbService.getTvEpisodeDetail(this.tmdbTvId, this.season, this.episode).subscribe((detail) => {
+        this.episodeDetail = detail;
+      });
+    }
     this.loadPlaybackGrant();
   }
 
   onSeasonSelect(season: number): void {
-    if (!this.isSeries || season < 1 || this.season === season) {
-      return;
-    }
-
+    if (!this.isSeries || season < 1 || this.season === season) return;
     this.season = season;
     this.rebuildEpisodeOptions();
     this.episode = this.currentEpisodes.includes(this.episode) ? this.episode : 1;
@@ -117,9 +126,7 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onEpisodeSelect(episode: number): void {
-    if (!this.isSeries || episode < 1 || this.episode === episode) {
-      return;
-    }
+    if (!this.isSeries || episode < 1 || this.episode === episode) return;
     this.episode = episode;
     this.loadSeriesEpisode();
   }
@@ -135,11 +142,68 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
+    // Load the title context (poster + name)
+    this.loadTitleContext();
+
     if (this.isSeries) {
       this.loadSeriesMetadata();
     }
 
     this.loadPlaybackGrant();
+  }
+
+  /**
+   * Load title name and poster from TMDB for the context header.
+   */
+  private loadTitleContext(): void {
+    const id = this.movieId;
+
+    if (id.startsWith('tmdb-movie-')) {
+      const tmdbId = Number.parseInt(id.replace('tmdb-movie-', ''), 10);
+      if (!Number.isNaN(tmdbId)) {
+        this.tmdbService.getTmdbMediaDetail(tmdbId, 'movie').subscribe((res) => {
+          this.movieTitle = res.detail.title;
+          this.moviePoster = res.poster;
+        });
+      }
+    } else if (id.startsWith('tmdb-tv-')) {
+      const tmdbId = Number.parseInt(id.replace('tmdb-tv-', ''), 10);
+      if (!Number.isNaN(tmdbId)) {
+        this.tmdbTvId = tmdbId;
+        this.tmdbService.getTmdbMediaDetail(tmdbId, 'tv').subscribe((res) => {
+          this.movieTitle = res.detail.title;
+          this.moviePoster = res.poster;
+        });
+      }
+    } else if (id.startsWith('tt')) {
+      // IMDb ID — use Cinemeta / TMDB find
+      this.tmdbService.resolveTmdbFromImdbId(id).subscribe((resolved) => {
+        if (resolved) {
+          if (this.isSeries && resolved.mediaType === 'tv') this.tmdbTvId = resolved.tmdbId;
+          this.tmdbService.getTmdbMediaDetail(resolved.tmdbId, resolved.mediaType).subscribe((res) => {
+            this.movieTitle = res.detail.title;
+            this.moviePoster = res.poster;
+          });
+        }
+      });
+    } else if (id.startsWith('s') && id.length > 1) {
+      const tmdbId = Number.parseInt(id.substring(1), 10);
+      if (!Number.isNaN(tmdbId)) {
+        this.tmdbTvId = tmdbId;
+        this.tmdbService.getTmdbMediaDetail(tmdbId, 'tv').subscribe((res) => {
+          this.movieTitle = res.detail.title;
+          this.moviePoster = res.poster;
+        });
+      }
+    } else if (id.startsWith('m') && id.length > 1) {
+      const tmdbId = Number.parseInt(id.substring(1), 10);
+      if (!Number.isNaN(tmdbId)) {
+        this.tmdbService.getTmdbMediaDetail(tmdbId, 'movie').subscribe((res) => {
+          this.movieTitle = res.detail.title;
+          this.moviePoster = res.poster;
+        });
+      }
+    }
   }
 
   private loadPlaybackGrant(): void {
@@ -149,6 +213,8 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
     this.sourceNotFound = false;
     this.playerStatus = null;
     this.streamUrl = null;
+    this.embedUrl = null;
+    this.episodeDetail = null;
     this.cleanupPlayer();
 
     const season = this.isSeries ? this.season : undefined;
@@ -158,6 +224,20 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (grantRes) => {
         this.grantLoading = false;
         const grant = grantRes?.data;
+
+        // Prefer embed URL (VidSrc iframe)
+        if (grant?.embedUrl) {
+          this.embedUrl = grant.embedUrl;
+          // Load episode detail from TMDB if we have a series
+          if (this.isSeries && this.tmdbTvId) {
+            this.tmdbService.getTvEpisodeDetail(this.tmdbTvId, this.season, this.episode).subscribe((detail) => {
+              this.episodeDetail = detail;
+            });
+          }
+          return;
+        }
+
+        // Fallback: direct video stream (mp4 / hls)
         const selectedSource = grant?.streamUrl || grant?.fallbackUrl || null;
         if (!selectedSource) {
           this.error = null;
@@ -165,7 +245,7 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
           return;
         }
         this.streamUrl = selectedSource;
-        this.streamType = grant.contentType || 'video/mp4';
+        this.streamType = grant?.contentType || 'video/mp4';
         this.playerStatus = 'Loading stream...';
         setTimeout(() => this.attachPlayer(), 0);
       },
@@ -189,6 +269,7 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
           if (!tmdbTvId) {
             return of([] as TvSeasonEpisodes[]);
           }
+          this.tmdbTvId = tmdbTvId;
           return this.tmdbService.getTvSeasonEpisodes(tmdbTvId);
         })
       )
@@ -216,9 +297,7 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private resolveTmdbTvId(id: string): Observable<number | null> {
-    if (!id) {
-      return of(null);
-    }
+    if (!id) return of(null);
 
     if (id.startsWith('tmdb-tv-')) {
       const parsed = Number.parseInt(id.replace('tmdb-tv-', ''), 10);
@@ -241,9 +320,7 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private attachPlayer(): void {
-    if (!this.streamUrl || !this.videoPlayer?.nativeElement) {
-      return;
-    }
+    if (!this.streamUrl || !this.videoPlayer?.nativeElement) return;
 
     const video = this.videoPlayer.nativeElement;
     const isHlsSource = this.streamType.toLowerCase().includes('mpegurl') || /\.m3u8(\?|$)/i.test(this.streamUrl);
@@ -257,36 +334,12 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
       this.cleanupPlayer();
     }, 12000);
 
-    if (isHlsSource && Hls.isSupported()) {
-      this.hls = new Hls({
-        enableWorker: true,
-        lowLatencyMode: true
-      });
-      this.hls.loadSource(this.streamUrl);
-      this.hls.attachMedia(video);
-      this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        clearTimeout(this.loadTimeout);
-        this.playerStatus = null;
-        video.play().catch(() => undefined);
-      });
-      this.hls.on(Hls.Events.ERROR, (_event: any, data: any) => {
-        if (!data.fatal) {
-          return;
-        }
-        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-          this.hls?.startLoad();
-          return;
-        }
-        if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-          this.hls?.recoverMediaError();
-          return;
-        }
-        this.sourceNotFound = true;
-        this.error = null;
-        this.playerStatus = 'Playback failed to load.';
-        this.streamUrl = null;
-        this.cleanupPlayer();
-      });
+    // Dynamic import of hls.js (only needed for direct HLS streams, not for VidSrc embed)
+    if (isHlsSource) {
+      // HLS support is currently disabled — real content uses the embed player
+      clearTimeout(this.loadTimeout);
+      this.sourceNotFound = true;
+      this.playerStatus = null;
       return;
     }
 
@@ -322,15 +375,10 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private syncSeriesQuery(): void {
-    if (!this.isSeries) {
-      return;
-    }
+    if (!this.isSeries) return;
     this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: {
-        season: this.season,
-        episode: this.episode
-      },
+      queryParams: { season: this.season, episode: this.episode },
       queryParamsHandling: 'merge',
       replaceUrl: true
     });

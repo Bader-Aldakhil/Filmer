@@ -1,36 +1,85 @@
-<div class="movies-container px-4">
-  <div class="title-section mb-5 mt-2 d-flex justify-content-between align-items-center">
-    <div>
-      <h1 class="display-4 fw-bold text-white">My Rentals</h1>
-      <p class="text-muted fs-5 mb-0">Purchased titles ready to watch</p>
-    </div>
+<div class="rentals-page px-4">
+
+  <!-- ── Page header ── -->
+  <div class="page-header mb-5 mt-2">
+    <h1 class="page-title">My Library</h1>
+    <p class="page-sub">Your purchased titles — watch ad-free, anytime.</p>
   </div>
 
-  <div *ngIf="loading" class="alert alert-dark bg-transparent text-center border-0 text-muted my-5 py-5">
-    <h4>Loading rentals...</h4>
-  </div>
-
-  <div *ngIf="error" class="alert alert-danger bg-danger text-white border-0">
-    {{ error }}
-  </div>
-
-  <div *ngIf="!loading && !error && items.length === 0"
-    class="alert alert-dark bg-transparent text-center border-0 text-muted my-5 py-5">
-    <h4>No rentals yet</h4>
-    <p>Complete checkout to unlock playback here.</p>
-    <a routerLink="/movies" class="btn btn-danger mt-2">Browse Movies</a>
-  </div>
-
-  <div *ngIf="!loading && !error && items.length > 0" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-    <div class="col" *ngFor="let item of items">
-      <div class="card bg-dark border-secondary text-white h-100">
-        <div class="card-body">
-          <h5 class="card-title mb-1">{{ item.title }}</h5>
-          <p class="text-muted small mb-1">{{ item.year || 'Unknown year' }}</p>
-          <p class="text-muted small mb-3">Purchased {{ item.lastPurchasedAt | date:'mediumDate' }}</p>
-          <a class="btn btn-danger btn-sm" [routerLink]="['/watch', item.movieId]">Watch</a>
-        </div>
+  <!-- ── Loading ── -->
+  <div *ngIf="loading" class="items-grid">
+    <div class="rental-card skeleton" *ngFor="let i of [1,2,3,4,5,6]">
+      <div class="poster-area skeleton-box"></div>
+      <div class="card-body">
+        <div class="skeleton-line w-70 mb-2"></div>
+        <div class="skeleton-line w-40 mb-4"></div>
+        <div class="skeleton-line w-30"></div>
       </div>
     </div>
   </div>
+
+  <!-- ── Error ── -->
+  <div *ngIf="error" class="alert-panel error-panel">
+    <i class="bi bi-exclamation-circle-fill me-2 text-danger"></i>
+    {{ error }}
+  </div>
+
+  <!-- ── Empty state ── -->
+  <div *ngIf="!loading && !error && items.length === 0" class="empty-state">
+    <div class="empty-icon">🎬</div>
+    <h3 class="empty-title">No titles yet</h3>
+    <p class="empty-sub">Complete a checkout to unlock ad-free playback here.</p>
+    <a routerLink="/movies" class="btn-cta">Browse Movies</a>
+    <a routerLink="/tvshows" class="btn-cta btn-cta--outline ms-2">Browse TV Shows</a>
+  </div>
+
+  <!-- ── Library grid ── -->
+  <div *ngIf="!loading && !error && items.length > 0" class="items-grid">
+    <div class="rental-card" *ngFor="let item of items">
+
+      <!-- Poster -->
+      <div class="poster-area">
+        <img
+          *ngIf="posters[item.movieId]"
+          [src]="posters[item.movieId]"
+          [alt]="item.title"
+          class="poster-img"
+          loading="lazy" />
+        <div *ngIf="!posters[item.movieId]" class="poster-placeholder">
+          <i class="bi bi-film"></i>
+        </div>
+
+        <!-- Type badge -->
+        <span class="type-badge" [class.badge-tv]="isSeries(item)" [class.badge-movie]="!isSeries(item)">
+          {{ typeLabel(item) }}
+        </span>
+
+        <!-- Hover overlay with Watch button -->
+        <div class="poster-overlay">
+          <a [routerLink]="['/watch', item.movieId]" class="play-btn" [attr.aria-label]="'Watch ' + item.title">
+            <i class="bi bi-play-fill"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Card body -->
+      <div class="card-body">
+        <h2 class="card-title">{{ item.title }}</h2>
+        <p class="card-meta">
+          <span *ngIf="item.year">{{ item.year }}</span>
+          <span *ngIf="item.lastPurchasedAt" class="dot-sep">·</span>
+          <span *ngIf="item.lastPurchasedAt">{{ item.lastPurchasedAt | date:'MMM d, y' }}</span>
+        </p>
+
+        <a
+          class="watch-btn"
+          [routerLink]="['/watch', item.movieId]">
+          <i class="bi bi-play-fill me-1"></i>
+          Watch Now
+        </a>
+      </div>
+
+    </div>
+  </div>
+
 </div>

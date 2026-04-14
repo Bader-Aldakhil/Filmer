@@ -1,18 +1,297 @@
-.alert {
-  border-radius: 10px;
+.rentals-page {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding-bottom: 4rem;
+  font-family: 'Inter', 'Outfit', sans-serif;
 }
 
-.card {
-  border-radius: 0.75rem;
-  background: linear-gradient(180deg, #1a1a1a 0%, #141414 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+/* ── Page header ─────────────────────────────── */
+.page-header {
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  padding-bottom: 1.25rem;
+}
 
-  .card-title {
-    letter-spacing: 0.1px;
+.page-title {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 0.3rem;
+  letter-spacing: -0.5px;
+}
+
+.page-sub {
+  color: rgba(255,255,255,0.45);
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* ── Grid layout ─────────────────────────────── */
+.items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+/* ── Rental card ─────────────────────────────── */
+.rental-card {
+  background: linear-gradient(180deg, #1c1c1c 0%, #141414 100%);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-5px) scale(1.01);
+    box-shadow: 0 22px 50px rgba(0,0,0,0.5);
+    border-color: rgba(229, 9, 20, 0.35);
+
+    .poster-overlay {
+      opacity: 1;
+    }
   }
 }
 
-.btn-danger {
+/* ── Poster area ─────────────────────────────── */
+.poster-area {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  background: #0d0d0d;
+  overflow: hidden;
+}
+
+.poster-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+
+  .rental-card:hover & {
+    transform: scale(1.04);
+  }
+}
+
+.poster-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,0.15);
+  font-size: 3rem;
+  background: linear-gradient(135deg, #111 0%, #1a1a1a 100%);
+}
+
+/* ── Type badge ──────────────────────────────── */
+.type-badge {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  font-size: 0.68rem;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-radius: 5px;
+  padding: 0.2rem 0.5rem;
+  backdrop-filter: blur(6px);
+}
+
+.badge-tv {
+  background: rgba(229, 9, 20, 0.85);
+  color: #fff;
+}
+
+.badge-movie {
+  background: rgba(30, 30, 30, 0.85);
+  color: rgba(255,255,255,0.8);
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+/* ── Hover overlay ───────────────────────────── */
+.poster-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.play-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #e50914;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  text-decoration: none;
+  box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 6px rgba(229, 9, 20, 0.3);
+  }
+}
+
+/* ── Card body ───────────────────────────────── */
+.card-body {
+  padding: 0.85rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-meta {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.4);
+  margin: 0 0 0.6rem;
+}
+
+.dot-sep {
+  margin: 0 0.35rem;
+}
+
+/* ── Watch button ────────────────────────────── */
+.watch-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e50914;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+  text-decoration: none;
+  margin-top: auto;
+  transition: background 0.15s, transform 0.1s;
+
+  &:hover {
+    background: #f40612;
+    transform: translateY(-1px);
+  }
+}
+
+/* ── Skeleton loading ────────────────────────── */
+.skeleton {
+  pointer-events: none;
+}
+
+.skeleton-box {
+  width: 100%;
+  aspect-ratio: 2/3;
+  background: linear-gradient(90deg, #1a1a1a 25%, #242424 50%, #1a1a1a 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+.skeleton-line {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #1a1a1a 25%, #242424 50%, #1a1a1a 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+
+  &.w-70 { width: 70%; }
+  &.w-40 { width: 40%; }
+  &.w-30 { width: 30%; }
+  &.mb-2 { margin-bottom: 0.5rem; }
+  &.mb-4 { margin-bottom: 1rem; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Empty state ─────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 5rem 1rem;
+}
+
+.empty-icon {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+}
+
+.empty-title {
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.empty-sub {
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 1.5rem;
+}
+
+/* ── CTA buttons ─────────────────────────────── */
+.btn-cta {
+  display: inline-flex;
+  align-items: center;
+  background: #e50914;
+  color: #fff;
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 0.65rem 1.4rem;
+  text-decoration: none;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #f40612;
+  }
+
+  &--outline {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fff;
+
+    &:hover {
+      background: rgba(255,255,255,0.07);
+    }
+  }
+}
+
+/* ── Error panel ─────────────────────────────── */
+.alert-panel {
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.error-panel {
+  background: rgba(229, 9, 20, 0.12);
+  border: 1px solid rgba(229, 9, 20, 0.3);
+  color: #ffb4b4;
+}
+
+/* ── Responsive ──────────────────────────────── */
+@media (max-width: 576px) {
+  .items-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
 }
