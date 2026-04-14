@@ -57,7 +57,8 @@
                             <i class="bi bi-play-fill fs-4 lh-1"></i>
                             Watch Now
                         </a>
-                        <button class="btn btn-light btn-lg px-5 py-2 fw-bold rounded-1 d-flex gap-2 align-items-center"
+                        <button *ngIf="!hasWatchAccess"
+                            class="btn btn-light btn-lg px-5 py-2 fw-bold rounded-1 d-flex gap-2 align-items-center"
                             (click)="rentNow()" [disabled]="cartLoading || isInCart">
                             <i class="bi fs-4 lh-1" [ngClass]="isInCart ? 'bi-bag-check-fill' : 'bi-bag-fill'"></i>
                             {{ cartLoading ? 'Adding...' : (isInCart ? 'Added to Cart' : 'Add to Cart') }}

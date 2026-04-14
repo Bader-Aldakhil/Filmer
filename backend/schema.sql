@@ -142,6 +142,22 @@ CREATE TABLE ratings (
         REFERENCES movies(id) ON DELETE CASCADE
 );
 
+-- Watch Progress Table
+-- Stores user playback progress on rented content
+CREATE TABLE watch_progress (
+    customer_id BIGINT NOT NULL,
+    movie_id VARCHAR(10) NOT NULL,
+    is_series BOOLEAN DEFAULT false,
+    season SMALLINT,
+    episode SMALLINT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (customer_id, movie_id),
+    CONSTRAINT fk_wp_customer FOREIGN KEY (customer_id) 
+        REFERENCES customers(id) ON DELETE CASCADE,
+    CONSTRAINT fk_wp_movie FOREIGN KEY (movie_id) 
+        REFERENCES movies(id) ON DELETE CASCADE
+);
+
 -- ============================================================================
 -- INDEXES FOR PERFORMANCE OPTIMIZATION
 -- ============================================================================

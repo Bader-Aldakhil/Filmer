@@ -2,6 +2,7 @@ package com.filmer.service;
 
 import com.filmer.dto.response.LibraryItemResponse;
 import com.filmer.dto.response.PlaybackGrantResponse;
+import com.filmer.dto.request.WatchProgressDto;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -170,5 +171,45 @@ public class LibraryService {
                 grant.getExpiresAt() == null ? null : Timestamp.valueOf(grant.getExpiresAt()),
                 success,
                 errorMessage);
+    }
+
+    public void saveWatchProgress(HttpSession session, WatchProgressDto progress) {
+        Long customerId = authService.requireAuthenticatedCustomerId(session);
+        jdbcTemplate.update("""
+            INSERT INTO watch_progress (customer_id, movie_id, is_series, season, episode, updated_at)
+            VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT (customer_id, movie_id)
+            DO UPDATE SET
+                is_series = EXCLUDED.is_series,
+                season = EXCLUDED.season,
+                episode = EXCLUDED.episode,
+                updated_at = EXCLUDED.updated_at
+            """,
+            customerId,
+            progress.getMovieId(),
+            progress.getIsSeries(),
+            progress.getSeason(),
+            progress.getEpisode()
+        );
+    }
+
+    public List<WatchProgressDto> getAllWatchProgress(HttpSession session) {
+        Long customerId = authService.requireAuthenticatedCustomerId(session);
+        return jdbcTemplate.query("""
+            SELECT movie_id, is_series, season, episode
+            FROM watch_progress
+            WHERE customer_id = ?
+            ORDER BY updated_at DESC
+            """,
+            (rs, rowNum) -> {
+                WatchProgressDto dto = new WatchProgressDto();
+                dto.setMovieId(rs.getString("movie_id"));
+                dto.setIsSeries(rs.getBoolean("is_series"));
+                dto.setSeason(rs.getInt("season") == 0 ? null : rs.getInt("season"));
+                dto.setEpisode(rs.getInt("episode") == 0 ? null : rs.getInt("episode"));
+                return dto;
+            },
+            customerId
+        );
     }
 }

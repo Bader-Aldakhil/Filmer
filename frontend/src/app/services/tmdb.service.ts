@@ -86,6 +86,14 @@ export interface TvSeasonEpisodes {
     episodeCount: number;
 }
 
+export interface TvEpisodeDetail {
+    name: string | null;
+    overview: string | null;
+    stillUrl: string | null;
+    episodeNumber: number;
+    seasonNumber: number;
+}
+
 interface CinemetaMetaResponse {
     meta?: {
         imdbRating?: string;
@@ -568,6 +576,66 @@ export class TmdbService {
             }),
             catchError(() => of(null))
         );
+    }
+
+    /**
+     * Get detail for a specific episode (name, overview, still image)
+     */
+    getTvEpisodeDetail(tmdbId: number, season: number, episode: number): Observable<TvEpisodeDetail | null> {
+        const url = `${this.baseUrl}/tv/${tmdbId}/season/${season}/episode/${episode}?api_key=${this.apiKey}`;
+        return this.http.get<any>(url).pipe(
+            map((res) => ({
+                name: res.name || null,
+                overview: res.overview || null,
+                stillUrl: res.still_path ? `${this.imageBaseUrl}/w780${res.still_path}` : null,
+                episodeNumber: res.episode_number ?? episode,
+                seasonNumber: res.season_number ?? season
+            })),
+            catchError(() => of(null))
+        );
+    }
+
+    /**
+     * Resolve an IMDb ID from any supported movieId format (tt..., tmdb-movie-X, tmdb-tv-X).
+     * For IMDb IDs already, returns them directly. For TMDB IDs, calls external_ids.
+     * Returns null if resolution fails or the ID format is unrecognised.
+     */
+    resolveImdbIdFromMovieId(movieId: string, isSeries: boolean): Observable<string | null> {
+        if (!movieId) return of(null);
+
+        if (movieId.startsWith('tt')) {
+            return of(movieId);
+        }
+
+        let mediaType: 'movie' | 'tv' | null = null;
+        let tmdbId: number | null = null;
+
+        if (movieId.startsWith('tmdb-movie-')) {
+            mediaType = 'movie';
+            tmdbId = Number.parseInt(movieId.replace('tmdb-movie-', ''), 10);
+        } else if (movieId.startsWith('tmdb-tv-')) {
+            mediaType = 'tv';
+            tmdbId = Number.parseInt(movieId.replace('tmdb-tv-', ''), 10);
+        } else if (movieId.startsWith('s') && movieId.length > 1) {
+            mediaType = 'tv';
+            tmdbId = Number.parseInt(movieId.substring(1), 10);
+        } else if (movieId.startsWith('m') && movieId.length > 1) {
+            mediaType = 'movie';
+            tmdbId = Number.parseInt(movieId.substring(1), 10);
+        }
+
+        if (mediaType && tmdbId && !Number.isNaN(tmdbId)) {
+            return this.getImdbIdForTmdb(tmdbId, mediaType);
+        }
+
+        // Fallback: use title type hint
+        const fallbackMedia: 'movie' | 'tv' = isSeries ? 'tv' : 'movie';
+        const fallbackId = Number.parseInt(movieId, 10);
+        if (!Number.isNaN(fallbackId)) {
+            return this.getImdbIdForTmdb(fallbackId, fallbackMedia);
+        }
+
+        return of(null);
     }
 
     getTvSeasonEpisodes(tmdbId: number): Observable<TvSeasonEpisodes[]> {

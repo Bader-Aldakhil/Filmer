@@ -1,14 +1,48 @@
-<div class="movies-container px-4 watch-page">
-  <div class="title-section mb-4 mt-2">
-    <h1 class="display-4 fw-bold text-white">Watch</h1>
+<div class="watch-page">
+
+  <!-- ── Context header / breadcrumb ── -->
+  <div class="watch-header px-4 pt-3 pb-2 d-flex align-items-center gap-3">
+    <button class="btn-back" (click)="goToLibrary()" title="Back to My Rentals">
+      <i class="bi bi-chevron-left"></i>
+      <span>My Rentals</span>
+    </button>
+
+    <ng-container *ngIf="movieTitle">
+      <span class="sep">·</span>
+      <div class="d-flex align-items-center gap-2">
+        <img *ngIf="moviePoster" [src]="moviePoster" [alt]="movieTitle" class="header-poster" />
+        <span class="header-title">{{ movieTitle }}</span>
+        <span *ngIf="isSeries && !grantLoading" class="ep-badge">
+          S{{ season }} E{{ episode }}
+          <span *ngIf="episodeDetail?.name"> · {{ episodeDetail!.name }}</span>
+        </span>
+      </div>
+      <button *ngIf="!loading && !grantLoading && !error" class="btn btn-fullscreen ms-auto" (click)="toggleFullscreen()" title="Toggle Fullscreen">
+        <i class="bi bi-arrows-fullscreen"></i>
+      </button>
+    </ng-container>
   </div>
 
-  <div *ngIf="loading" class="panel">Verifying your access...</div>
+  <!-- ── Loading: verifying access ── -->
+  <div *ngIf="loading" class="panel mx-4 mb-4 text-center">
+    <div class="spinner-border text-danger mb-3" role="status"></div>
+    <p class="mb-0">Verifying your access...</p>
+  </div>
 
-  <div *ngIf="!loading && hasAccess && isSeries" class="row g-3 mb-3">
+  <!-- ── Error: no access or API failure ── -->
+  <div *ngIf="!loading && error" class="panel error mx-4 mb-4">
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <i class="bi bi-exclamation-circle-fill fs-2 text-danger"></i>
+      <p class="mb-0 fs-5">{{ error }}</p>
+    </div>
+    <button class="btn-red" (click)="goToLibrary()">Back to My Rentals</button>
+  </div>
+
+  <!-- ── Season / Episode selectors (series only) ── -->
+  <div *ngIf="!loading && hasAccess && isSeries" class="row g-3 mb-3 mx-0 px-4">
     <div class="col-lg-3">
       <div class="panel h-100 selector-panel">
-        <h3>Seasons</h3>
+        <h3 class="selector-title">Seasons</h3>
         <div class="list-group season-list">
           <button
             type="button"
@@ -24,7 +58,7 @@
 
     <div class="col-lg-9">
       <div class="panel h-100 selector-panel">
-        <h3>Episodes</h3>
+        <h3 class="selector-title">Episodes</h3>
         <div class="episode-grid">
           <button
             type="button"
@@ -40,26 +74,58 @@
     </div>
   </div>
 
-  <div *ngIf="!loading && grantLoading" class="panel">Preparing playback session...</div>
-
-  <div *ngIf="!loading && error" class="panel error">
-    <p class="mb-3">{{ error }}</p>
-    <button class="btn-red" (click)="goToLibrary()">Back to My Rentals</button>
+  <!-- ── Loading: grant / stream ── -->
+  <div *ngIf="!loading && grantLoading" class="panel mx-4 mb-4 text-center">
+    <div class="spinner-border text-danger mb-3" role="status"></div>
+    <p class="mb-0">Preparing your stream...</p>
   </div>
 
-  <div *ngIf="!loading && !grantLoading && !error && sourceNotFound" class="panel source-not-found">
-    <p class="mb-0">Source not found.</p>
+  <!-- ── Source not found ── -->
+  <div *ngIf="!loading && !grantLoading && !error && sourceNotFound" class="panel source-not-found mx-4 mb-4 text-center">
+    <i class="bi bi-film fs-2 mb-2 d-block opacity-50"></i>
+    <p class="mb-0">No stream available for this title yet.</p>
+    <button class="btn-red mt-3" (click)="goToLibrary()">Back to My Rentals</button>
   </div>
 
-  <div *ngIf="!loading && !grantLoading && !error && streamUrl" class="panel">
+  <!-- ── VidSrc embed player ── -->
+  <div *ngIf="!loading && !grantLoading && !error && embedUrl" class="player-area px-4 mb-4">
+    <div class="video-wrapper">
+      <iframe
+        [src]="embedUrl | trustUrl"
+        allowfullscreen
+        allow="autoplay; fullscreen; picture-in-picture"
+        frameborder="0"
+        scrolling="no"
+        referrerpolicy="origin">
+      </iframe>
+    </div>
+
+    <!-- Episode detail strip (series) -->
+    <div *ngIf="isSeries && episodeDetail" class="episode-info-strip mt-3">
+      <div class="d-flex gap-3 align-items-start">
+        <img *ngIf="episodeDetail.stillUrl" [src]="episodeDetail.stillUrl" alt="Episode still" class="ep-still" />
+        <div>
+          <h5 class="ep-title mb-1">
+            S{{ episodeDetail.seasonNumber }} E{{ episodeDetail.episodeNumber }}
+            <span *ngIf="episodeDetail.name"> — {{ episodeDetail.name }}</span>
+          </h5>
+          <p *ngIf="episodeDetail.overview" class="ep-overview mb-0">{{ episodeDetail.overview }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Fallback direct video player ── -->
+  <div *ngIf="!loading && !grantLoading && !error && streamUrl && !embedUrl" class="panel mx-4 mb-4">
     <div class="video-wrapper">
       <video #videoPlayer controls autoplay muted playsinline preload="metadata">
         <source [src]="streamUrl" [type]="streamType" />
         Your browser does not support video playback.
       </video>
     </div>
-    <div class="watch-help">
+    <div class="watch-help mt-2">
       <p *ngIf="playerStatus" class="status-line">{{ playerStatus }}</p>
     </div>
   </div>
+
 </div>
