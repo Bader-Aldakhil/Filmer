@@ -1,0 +1,65 @@
+<div class="movies-container px-4 watch-page">
+  <div class="title-section mb-4 mt-2">
+    <h1 class="display-4 fw-bold text-white">Watch</h1>
+  </div>
+
+  <div *ngIf="loading" class="panel">Verifying your access...</div>
+
+  <div *ngIf="!loading && hasAccess && isSeries" class="row g-3 mb-3">
+    <div class="col-lg-3">
+      <div class="panel h-100 selector-panel">
+        <h3>Seasons</h3>
+        <div class="list-group season-list">
+          <button
+            type="button"
+            class="list-group-item list-group-item-action"
+            *ngFor="let seasonItem of seasons"
+            [class.active]="seasonItem === season"
+            (click)="onSeasonSelect(seasonItem)">
+            Season {{ seasonItem }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-9">
+      <div class="panel h-100 selector-panel">
+        <h3>Episodes</h3>
+        <div class="episode-grid">
+          <button
+            type="button"
+            class="btn episode-btn"
+            *ngFor="let episodeItem of currentEpisodes"
+            [class.btn-danger]="episodeItem === episode"
+            [class.btn-outline-light]="episodeItem !== episode"
+            (click)="onEpisodeSelect(episodeItem)">
+            E{{ episodeItem }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && grantLoading" class="panel">Preparing playback session...</div>
+
+  <div *ngIf="!loading && error" class="panel error">
+    <p class="mb-3">{{ error }}</p>
+    <button class="btn-red" (click)="goToLibrary()">Back to My Rentals</button>
+  </div>
+
+  <div *ngIf="!loading && !grantLoading && !error && sourceNotFound" class="panel source-not-found">
+    <p class="mb-0">Source not found.</p>
+  </div>
+
+  <div *ngIf="!loading && !grantLoading && !error && streamUrl" class="panel">
+    <div class="video-wrapper">
+      <video #videoPlayer controls autoplay muted playsinline preload="metadata">
+        <source [src]="streamUrl" [type]="streamType" />
+        Your browser does not support video playback.
+      </video>
+    </div>
+    <div class="watch-help">
+      <p *ngIf="playerStatus" class="status-line">{{ playerStatus }}</p>
+    </div>
+  </div>
+</div>

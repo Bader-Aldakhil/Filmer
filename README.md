@@ -56,6 +56,28 @@ Filmer/
 
 ## Setup & Installation
 
+### One-Command Local Start/Stop (Windows PowerShell)
+
+From the repository root, run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\start-local.ps1
+```
+
+This command will:
+- Start Docker Desktop (if installed)
+- Start PostgreSQL and backend using Docker Compose
+- Start Angular frontend in a new PowerShell window
+- Open http://localhost:4200/
+
+To stop services:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\stop-local.ps1
+```
+
+Note: close the Angular terminal window manually if it is still running.
+
 ### Prerequisites
 * **Docker Desktop** - [Download here](https://www.docker.com/products/docker-desktop/)
   - Includes Docker and Docker Compose

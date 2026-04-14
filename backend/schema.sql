@@ -215,6 +215,29 @@ FROM (
 ) AS map(genre_name, movie_id)
 JOIN genres g ON g.name = map.genre_name;
 
+-- Seed demo credit cards and customers for local Phase 4 flows
+INSERT INTO creditcards (id, first_name, last_name, expiration) VALUES
+    ('4000000000000002', 'Phase', 'Tester', '2027-12-31'),
+    ('4111111111111111', 'John', 'Doe', '2028-12-31');
+
+INSERT INTO customers (first_name, last_name, cc_id, address, email, password) VALUES
+    (
+        'Phase',
+        'Tester',
+        '4000000000000002',
+        'Local Demo Address',
+        'phase.tester@example.com',
+        '$2a$10$JZbVvR8pAeEtLfhk8gBvYO0UM/UPflJPh0CyZEsF3NQM4tHJdNuwO'
+    ),
+    (
+        'John',
+        'Doe',
+        '4111111111111111',
+        '123 Main St',
+        'john@example.com',
+        '$2a$10$JZbVvR8pAeEtLfhk8gBvYO0UM/UPflJPh0CyZEsF3NQM4tHJdNuwO'
+    );
+
 -- ============================================================================
 -- NOTES
 -- ============================================================================

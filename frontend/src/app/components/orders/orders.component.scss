@@ -1,0 +1,112 @@
+.orders-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-bottom: 3rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 1rem;
+}
+
+.panel {
+  background: linear-gradient(180deg, #1a1a1a 0%, #141414 100%);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.26);
+}
+
+.order {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  margin: 0.4rem 0;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  background: #0f0f0f;
+  color: #fff;
+  padding: 0.55rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    border-color: rgba(229, 9, 20, 0.5);
+    transform: translateY(-1px);
+  }
+}
+
+.line, .total {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.45rem 0;
+}
+
+.watch-link {
+  margin-left: 0.5rem;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 0.78rem;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+
+  &:hover {
+    border-color: rgba(229, 9, 20, 0.8);
+    background: rgba(229, 9, 20, 0.2);
+  }
+}
+
+.total {
+  border-top: 1px solid rgba(255,255,255,0.15);
+  padding-top: 0.7rem;
+}
+
+.meta {
+  margin-top: 0.7rem;
+  color: #bdbdbd;
+}
+
+.cancel-row {
+  margin-top: 0.8rem;
+  display: flex;
+  gap: 0.5rem;
+
+  input {
+    flex: 1;
+    background: #0f0f0f;
+    border: 1px solid #2e2e2e;
+    color: #fff;
+    border-radius: 8px;
+    padding: 0.55rem;
+
+    &:focus {
+      outline: none;
+      border-color: rgba(229, 9, 20, 0.85);
+      box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.2);
+    }
+  }
+
+  button {
+    border: 0;
+    border-radius: 8px;
+    padding: 0.55rem 0.8rem;
+    background: var(--netflix-red);
+    color: #fff;
+    font-weight: 700;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: var(--netflix-red-hover);
+    }
+  }
+}
+
+.error { color: #ffadad; }
+.muted { color: #a0a0a0; }
+
+@media (max-width: 900px) {
+  .grid { grid-template-columns: 1fr; }
+}

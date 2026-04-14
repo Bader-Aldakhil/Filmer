@@ -1,0 +1,41 @@
+<div class="movies-container px-4 auth-page">
+  <div class="title-section mb-4 mt-2">
+    <h1 class="display-4 fw-bold text-white">{{ mode === 'login' ? 'Sign In' : 'Create Account' }}</h1>
+  </div>
+
+  <div class="auth-card">
+
+    <div class="mode-switch">
+      <button [class.active]="mode === 'login'" (click)="switchMode('login')">Login</button>
+      <button [class.active]="mode === 'register'" (click)="switchMode('register')">Register</button>
+    </div>
+
+    <form (ngSubmit)="submit()">
+      <div class="field" *ngIf="mode === 'register'">
+        <label>First Name</label>
+        <input [(ngModel)]="firstName" name="firstName" required />
+      </div>
+
+      <div class="field" *ngIf="mode === 'register'">
+        <label>Last Name</label>
+        <input [(ngModel)]="lastName" name="lastName" required />
+      </div>
+
+      <div class="field">
+        <label>Email</label>
+        <input type="email" [(ngModel)]="email" name="email" required />
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <input type="password" [(ngModel)]="password" name="password" required />
+      </div>
+
+      <p class="error" *ngIf="error">{{ error }}</p>
+
+      <button type="submit" class="submit" [disabled]="loading">
+        {{ loading ? 'Please wait...' : (mode === 'login' ? 'Login' : 'Register') }}
+      </button>
+    </form>
+  </div>
+</div>

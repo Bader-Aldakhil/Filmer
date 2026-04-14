@@ -1129,6 +1129,7 @@ Get order history for the authenticated customer.
 |--------|----------|-------------|------|
 | `GET` | `/api/v1/health` | Health check | No |
 | `POST` | `/api/v1/auth/login` | Customer login | No |
+| `POST` | `/api/v1/auth/register` | Customer registration | No |
 | `POST` | `/api/v1/auth/logout` | Customer logout | Yes |
 | `GET` | `/api/v1/auth/session` | Check session | Yes |
 | `GET` | `/api/v1/movies` | List movies | No |
@@ -1146,3 +1147,6 @@ Get order history for the authenticated customer.
 | `POST` | `/api/v1/checkout` | Process checkout | Yes |
 | `GET` | `/api/v1/orders` | List orders | Yes |
 | `GET` | `/api/v1/orders/{orderId}` | Get order details | Yes |
+| `POST` | `/api/v1/orders/cancel` | Cancel order | Yes |
+| `GET` | `/api/v1/orders/{orderId}/refund` | Get refund status | Yes |
+| `GET` | `/api/v1/orders/{orderId}/track` | Track order status | Yes |

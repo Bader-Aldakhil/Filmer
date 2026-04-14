@@ -1,9 +1,12 @@
 package com.filmer.controller;
 
 import com.filmer.dto.request.LoginRequest;
+import com.filmer.dto.request.RegisterRequest;
+import com.filmer.dto.response.ApiErrorResponse;
 import com.filmer.dto.response.ApiResponse;
 import com.filmer.dto.response.CustomerSessionResponse;
 import com.filmer.dto.response.MessageResponse;
+import com.filmer.service.AuthService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +18,12 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
+
+    private final AuthService authService;
+
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
 
     /**
      * Authenticate a customer and create a session.
@@ -40,17 +49,33 @@ public class AuthController {
      * </ul>
      */
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<CustomerSessionResponse>> login(
+    public ResponseEntity<?> login(
             @RequestBody LoginRequest loginRequest,
             HttpSession session) {
-        // TODO: Implement login logic
-        // 1. Validate request
-        // 2. Verify credentials against database
-        // 3. Create session and store customer info
-        CustomerSessionResponse response = new CustomerSessionResponse(
-                1L, "user@example.com", "John", "Doe"
-        );
-        return ResponseEntity.status(501).body(ApiResponse.success(response));
+        try {
+            CustomerSessionResponse response = authService.login(loginRequest, session);
+            return ResponseEntity.ok(ApiResponse.success(response));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(401)
+                    .body(ApiErrorResponse.of("INVALID_CREDENTIALS", "Invalid email or password"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400)
+                    .body(ApiErrorResponse.of("VALIDATION_ERROR", e.getMessage()));
+        }
+    }
+
+    /**
+     * Register a new customer and create a session.
+     */
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody RegisterRequest registerRequest, HttpSession session) {
+        try {
+            CustomerSessionResponse response = authService.register(registerRequest, session);
+            return ResponseEntity.status(201).body(ApiResponse.success(response));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400)
+                    .body(ApiErrorResponse.of("VALIDATION_ERROR", e.getMessage()));
+        }
     }
 
     /**
@@ -69,12 +94,15 @@ public class AuthController {
      * </ul>
      */
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<MessageResponse>> logout(HttpSession session) {
-        // TODO: Implement logout logic
-        // 1. Verify session exists
-        // 2. Invalidate session
-        MessageResponse response = new MessageResponse("Logged out successfully");
-        return ResponseEntity.status(501).body(ApiResponse.success(response));
+    public ResponseEntity<?> logout(HttpSession session) {
+        try {
+            authService.logout(session);
+            MessageResponse response = new MessageResponse("Logged out successfully");
+            return ResponseEntity.ok(ApiResponse.success(response));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(401)
+                    .body(ApiErrorResponse.of("UNAUTHORIZED", e.getMessage()));
+        }
     }
 
     /**
@@ -93,13 +121,13 @@ public class AuthController {
      * </ul>
      */
     @GetMapping("/session")
-    public ResponseEntity<ApiResponse<CustomerSessionResponse>> checkSession(HttpSession session) {
-        // TODO: Implement session check logic
-        // 1. Verify session exists and is valid
-        // 2. Return customer info from session
-        CustomerSessionResponse response = new CustomerSessionResponse(
-                1L, "user@example.com", "John", "Doe"
-        );
-        return ResponseEntity.status(501).body(ApiResponse.success(response));
+    public ResponseEntity<?> checkSession(HttpSession session) {
+        try {
+            CustomerSessionResponse response = authService.getSession(session);
+            return ResponseEntity.ok(ApiResponse.success(response));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(401)
+                    .body(ApiErrorResponse.of("UNAUTHORIZED", e.getMessage()));
+        }
     }
 }

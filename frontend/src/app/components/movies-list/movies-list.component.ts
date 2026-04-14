@@ -33,6 +33,7 @@ export class MoviesListComponent implements OnInit, OnDestroy {
 
     // Store posters resolved via TMDB
     posters: { [key: string]: string } = {};
+    private imdbRatingCache: { [tmdbKey: string]: number | undefined } = {};
 
     private computeWeightedScore(item: MovieListItem): number {
         const rating = item.rating ?? 0;
@@ -152,6 +153,7 @@ export class MoviesListComponent implements OnInit, OnDestroy {
                     this.allMovies = response.items;
                     this.posters = { ...this.posters, ...response.posters };
                     this.hasMore = response.page < response.totalPages;
+                    this.enrichVisibleRatings(this.allMovies);
                     this.refreshVisibleMovies();
                     this.loading = false;
                 },
@@ -188,6 +190,7 @@ export class MoviesListComponent implements OnInit, OnDestroy {
                     this.allMovies = Array.from(byId.values());
                     this.posters = { ...this.posters, ...response.posters };
                     this.hasMore = response.page < response.totalPages;
+                    this.enrichVisibleRatings(response.items);
                     this.refreshVisibleMovies();
                     this.loadingMore = false;
                     this.showLoadingMore = false;
@@ -221,5 +224,32 @@ export class MoviesListComponent implements OnInit, OnDestroy {
         this.selectedGenre = null;
         this.minRating = 0;
         this.loadMovies();
+    }
+
+    private enrichVisibleRatings(items: MovieListItem[]): void {
+        for (const item of items) {
+            if (!item.id.startsWith('tmdb-movie-')) {
+                continue;
+            }
+
+            const tmdbId = Number.parseInt(item.id.replace('tmdb-movie-', ''), 10);
+            if (Number.isNaN(tmdbId)) {
+                continue;
+            }
+
+            const cacheKey = `movie:${tmdbId}`;
+            if (this.imdbRatingCache[cacheKey] !== undefined) {
+                item.rating = this.imdbRatingCache[cacheKey];
+                continue;
+            }
+
+            this.tmdbService.getImdbRatingForTmdb(tmdbId, 'movie').subscribe((imdbRating) => {
+                if (imdbRating === undefined) {
+                    return;
+                }
+                this.imdbRatingCache[cacheKey] = imdbRating;
+                item.rating = imdbRating;
+            });
+        }
     }
 }

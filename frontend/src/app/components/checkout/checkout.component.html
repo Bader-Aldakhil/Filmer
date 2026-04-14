@@ -1,0 +1,47 @@
+<div class="movies-container px-4 checkout-page">
+  <div class="title-section mb-4 mt-2">
+    <h1 class="display-4 fw-bold text-white">Checkout</h1>
+  </div>
+
+  <div *ngIf="loading" class="panel">Loading cart...</div>
+  <div *ngIf="error" class="panel error">{{ error }}</div>
+  <div *ngIf="successMessage" class="panel ok">{{ successMessage }}</div>
+
+  <div class="grid" *ngIf="!loading">
+    <div class="panel">
+      <h3>Order Summary</h3>
+      <div *ngFor="let item of cart.items" class="line">
+        <span>{{ item.title }} x{{ item.quantity }}</span>
+        <strong>${{ item.subtotal | number:'1.2-2' }}</strong>
+      </div>
+      <div class="total">
+        <span>Total</span>
+        <strong>${{ cart.totalPrice | number:'1.2-2' }}</strong>
+      </div>
+    </div>
+
+    <form class="panel" (ngSubmit)="submit()">
+      <h3>Payment</h3>
+      <p class="hint">Card details must match an existing record exactly.</p>
+      <label>Card ID</label>
+      <input [(ngModel)]="creditCardId" name="creditCardId" required />
+
+      <label>First Name</label>
+      <input [(ngModel)]="firstName" name="firstName" required />
+
+      <label>Last Name</label>
+      <input [(ngModel)]="lastName" name="lastName" required />
+
+      <label>Expiration (YYYY-MM)</label>
+      <input [(ngModel)]="expiration" name="expiration" placeholder="2027-12" required />
+
+      <div class="payment-note">
+        <strong>Format:</strong> expiration must be <span>YYYY-MM</span>
+      </div>
+
+      <button class="submit" [disabled]="processing || cart.itemCount === 0">
+        {{ processing ? 'Processing...' : 'Place Order' }}
+      </button>
+    </form>
+  </div>
+</div>
