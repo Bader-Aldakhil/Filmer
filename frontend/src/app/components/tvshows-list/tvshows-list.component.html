@@ -1,7 +1,7 @@
 <div class="movies-container px-4">
     <div class="title-section mb-5 mt-2">
         <h1 class="display-4 fw-bold text-white">TV Shows</h1>
-        <p class="text-muted fs-5 mb-0">Explore our collection, sorted by popularity</p>
+        <p class="text-muted fs-5 mb-0">Explore our collection, sorted by top IMDb rating by default</p>
     </div>
 
     <div class="filters-row d-flex gap-3 align-items-center mb-4">
@@ -30,6 +30,7 @@
             <option [ngValue]="6">6+ ⭐</option>
             <option [ngValue]="5">5+ ⭐</option>
         </select>
+
     </div>
 
     <div *ngIf="loading" class="row row-cols-2 row-cols-md-4 row-cols-lg-5 row-cols-xl-6 g-4 mb-5">
@@ -53,7 +54,7 @@
     <div *ngIf="!loading && !error && shows.length > 0">
         <!-- Netflix style Grid -->
         <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 row-cols-xl-6 g-4 mb-5">
-            <div class="col" *ngFor="let show of shows">
+            <div class="col" *ngFor="let show of shows; trackBy: trackByShowId">
                 <a [routerLink]="['/tvshows', show.id]"
                     class="card movie-card position-relative rounded-3 overflow-hidden text-decoration-none border-0 bg-transparent cursor-pointer">
 
@@ -72,7 +73,7 @@
                         <div *ngIf="show.rating"
                             class="rating-badge position-absolute top-0 end-0 m-2 px-2 py-1 bg-dark bg-opacity-75 rounded-pill text-white small fw-bold"
                             style="z-index: 2;">
-                            <i class="bi bi-star-fill text-warning me-1"></i>{{ show.rating }}
+                            <i class="bi bi-star-fill text-warning me-1"></i>{{ show.rating | number:'1.1-1' }}
                         </div>
                     </div>
 
@@ -87,7 +88,7 @@
                         <div class="d-flex justify-content-between align-items-center w-100 card-subtitle mb-2">
                             <span class="text-success small fw-medium">{{ show.year || 'N/A' }}</span>
                             <span class="text-white small fw-bold" *ngIf="show.rating">
-                                <i class="bi bi-star-fill text-warning me-1"></i>{{ show.rating }}
+                                <i class="bi bi-star-fill text-warning me-1"></i>{{ show.rating | number:'1.1-1' }}
                             </span>
                         </div>
                     </div>
@@ -96,7 +97,7 @@
         </div>
 
         <!-- Infinite Scroll Loading Spinner -->
-        <div *ngIf="loadingMore" class="text-center my-4 py-3">
+        <div *ngIf="showLoadingMore" class="text-center my-4 py-3">
             <div class="spinner-border spinner-border-sm text-danger" role="status">
                 <span class="visually-hidden">Loading more...</span>
             </div>

@@ -3,9 +3,9 @@ import { HomeComponent } from './components/home/home.component';
 import { ConnectivityTestComponent } from './components/connectivity-test/connectivity-test.component';
 import { MoviesListComponent } from './components/movies-list/movies-list.component';
 import { MovieDetailComponent } from './components/movie-detail/movie-detail.component';
-import { SearchComponent } from './components/search/search.component';
 import { TvshowsListComponent } from './components/tvshows-list/tvshows-list.component';
 import { FavoritesComponent } from './components/favorites/favorites.component';
+import { RentalsComponent } from './components/rentals/rentals.component';
 export const APP_ROUTES: Routes = [
   {
     path: '',
@@ -40,8 +40,13 @@ export const APP_ROUTES: Routes = [
     component: FavoritesComponent
   },
   {
+    path: 'rentals',
+    component: RentalsComponent,
+    title: 'Filmer - My Rentals'
+  },
+  {
     path: 'search',
-    component: SearchComponent
+    redirectTo: 'movies'
   },
   {
     path: '**',

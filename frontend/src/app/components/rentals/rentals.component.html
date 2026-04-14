@@ -1,0 +1,32 @@
+<div class="movies-container px-4">
+  <div class="title-section mb-5 mt-2 d-flex justify-content-between align-items-center">
+    <div>
+      <h1 class="display-4 fw-bold text-white">My Rentals</h1>
+      <p class="text-muted fs-5 mb-0">Your currently rented movies and shows</p>
+    </div>
+    <button *ngIf="rentalService.rentals().length > 0" class="btn btn-outline-danger" (click)="rentalService.clear()">
+      Clear All
+    </button>
+  </div>
+
+  <div *ngIf="rentalService.rentals().length === 0"
+    class="alert alert-dark bg-transparent text-center border-0 text-muted my-5 py-5">
+    <h4>No rentals yet</h4>
+    <p>Open any movie or show and click Rent to add it here.</p>
+    <a routerLink="/movies" class="btn btn-danger mt-2">Browse Movies</a>
+  </div>
+
+  <div *ngIf="rentalService.rentals().length > 0" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    <div class="col" *ngFor="let item of rentalService.rentals()">
+      <div class="card bg-dark border-secondary text-white h-100">
+        <img *ngIf="item.poster" [src]="item.poster" [alt]="item.title" class="card-img-top" style="aspect-ratio: 16/9; object-fit: cover;">
+        <div class="card-body">
+          <h5 class="card-title mb-1">{{ item.title }}</h5>
+          <p class="text-muted small mb-1">{{ item.year || 'Unknown year' }}</p>
+          <p class="text-muted small mb-3">Rented {{ item.rentedAt | date:'medium' }}</p>
+          <button class="btn btn-outline-light btn-sm" (click)="remove(item.id)">Remove</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { Observable, of, map, catchError, forkJoin, switchMap } from 'rxjs';
+import { GenreInfo, MovieListItem, MovieDetail, StarInfo } from '../models/movie.model';
 
 export interface TmdbCastMember {
     id: number;
@@ -16,26 +16,387 @@ export interface TmdbCreditsResponse {
     cast: TmdbCastMember[];
 }
 
+interface TmdbGenre {
+    id: number;
+    name: string;
+}
+
+interface TmdbDiscoverItem {
+    id: number;
+    title?: string;
+    name?: string;
+    release_date?: string;
+    first_air_date?: string;
+    vote_average?: number;
+    vote_count?: number;
+    genre_ids?: number[];
+    poster_path?: string | null;
+}
+
+interface TmdbDiscoverResponse {
+    page: number;
+    total_pages: number;
+    results: TmdbDiscoverItem[];
+}
+
+interface TmdbDetailResponse {
+    id: number;
+    title?: string;
+    name?: string;
+    release_date?: string;
+    first_air_date?: string;
+    vote_average?: number;
+    vote_count?: number;
+    genres?: TmdbGenre[];
+    overview?: string;
+    poster_path?: string | null;
+    backdrop_path?: string | null;
+}
+
+interface TmdbExternalIdsResponse {
+    imdb_id?: string | null;
+}
+
+interface CinemetaMetaResponse {
+    meta?: {
+        imdbRating?: string;
+    };
+}
+
+interface OmdbTitleResponse {
+    imdbVotes?: string;
+    Response?: string;
+}
+
+interface RuntimeConfig {
+    TMDB_API_KEY?: string;
+    OMDB_API_KEY?: string;
+}
+
 @Injectable({
     providedIn: 'root'
 })
 export class TmdbService {
-    private readonly apiKey = this.resolveApiKey();
+    private readonly apiKey = this.getRuntimeConfig().TMDB_API_KEY || '';
     private readonly baseUrl = 'https://api.themoviedb.org/3';
     private readonly imageBaseUrl = 'https://image.tmdb.org/t/p';
+    private readonly omdbApiKey = this.getRuntimeConfig().OMDB_API_KEY || '';
 
     constructor(private http: HttpClient) { }
 
-    private resolveApiKey(): string {
-        const runtimeApiKey = (window as any).__runtimeConfig?.tmdbApiKey;
-        return runtimeApiKey || environment.tmdbApiKey || '';
+    private getRuntimeConfig(): RuntimeConfig {
+        const runtime = (window as unknown as { RUNTIME_CONFIG?: RuntimeConfig }).RUNTIME_CONFIG;
+        return runtime || {};
+    }
+
+    private getYear(dateValue?: string): number | undefined {
+        if (!dateValue || dateValue.length < 4) {
+            return undefined;
+        }
+        const year = Number.parseInt(dateValue.substring(0, 4), 10);
+        return Number.isNaN(year) ? undefined : year;
+    }
+
+    private buildPosterUrl(path?: string | null): string | null {
+        return path ? `${this.imageBaseUrl}/w500${path}` : null;
+    }
+
+    // IMDb-style weighted rating to avoid low-vote titles dominating the list.
+    private weightedScore(rawRating?: number, voteCount?: number, baseline = 6.8, minVotes = 1000): number {
+        if (!rawRating) {
+            return 0;
+        }
+        const v = voteCount || 0;
+        const r = rawRating;
+        const m = minVotes;
+        const c = baseline;
+        return (v / (v + m)) * r + (m / (v + m)) * c;
+    }
+
+    private sortByWeightedScore(items: TmdbDiscoverItem[], mediaType: 'movie' | 'tv'): TmdbDiscoverItem[] {
+        const minVotes = mediaType === 'movie' ? 1000 : 500;
+        const baseline = mediaType === 'movie' ? 6.9 : 7.0;
+
+        return [...items].sort((a, b) => {
+            const scoreB = this.weightedScore(b.vote_average, b.vote_count, baseline, minVotes);
+            const scoreA = this.weightedScore(a.vote_average, a.vote_count, baseline, minVotes);
+            if (scoreB !== scoreA) {
+                return scoreB - scoreA;
+            }
+            return (b.vote_count || 0) - (a.vote_count || 0);
+        });
+    }
+
+    getMovieGenres(): Observable<GenreInfo[]> {
+        return this.http
+            .get<{ genres: TmdbGenre[] }>(`${this.baseUrl}/genre/movie/list?api_key=${this.apiKey}`)
+            .pipe(
+                map(response => response.genres.map(g => ({ id: g.id, name: g.name }))),
+                catchError(() => of([]))
+            );
+    }
+
+    getTvGenres(): Observable<GenreInfo[]> {
+        return this.http
+            .get<{ genres: TmdbGenre[] }>(`${this.baseUrl}/genre/tv/list?api_key=${this.apiKey}`)
+            .pipe(
+                map(response => response.genres.map(g => ({ id: g.id, name: g.name }))),
+                catchError(() => of([]))
+            );
+    }
+
+    discoverMovies(page: number, query?: string, genreId?: number, minRating?: number, sortBy: 'top_rated' | 'popularity' = 'top_rated'): Observable<{ items: MovieListItem[]; posters: Record<string, string>; page: number; totalPages: number }> {
+        const isSearch = !!(query && query.trim().length > 0);
+        const isFiltered = !!genreId || !!(minRating && minRating > 0);
+        const useMainstreamTopRated = !isSearch && !isFiltered && sortBy === 'top_rated';
+
+        const base = isSearch
+            ? `${this.baseUrl}/search/movie`
+            : `${this.baseUrl}/discover/movie`;
+
+        let url = `${base}?api_key=${this.apiKey}&page=${page}`;
+
+        if (query && query.trim().length > 0) {
+            url += `&query=${encodeURIComponent(query.trim())}`;
+        }
+        if (genreId) {
+            url += `&with_genres=${genreId}`;
+        }
+        if (minRating && minRating > 0) {
+            url += `&vote_average.gte=${minRating}`;
+            url += '&vote_count.gte=100';
+        }
+        if (sortBy === 'top_rated') {
+            const voteFloor = useMainstreamTopRated ? 3000 : (isFiltered ? 80 : 700);
+            url += `&vote_count.gte=${voteFloor}`;
+            url += '&sort_by=vote_average.desc';
+            if (useMainstreamTopRated) {
+                url += '&with_original_language=en';
+                url += '&without_genres=99';
+            }
+        }
+        if (!isSearch && sortBy !== 'top_rated') {
+            url += sortBy === 'popularity' ? '&sort_by=popularity.desc' : '&sort_by=vote_average.desc';
+        }
+
+        return this.http.get<TmdbDiscoverResponse>(url).pipe(
+            map(response => {
+                const rankedResults = sortBy === 'top_rated'
+                    ? this.sortByWeightedScore(response.results, 'movie')
+                    : response.results;
+                const posters: Record<string, string> = {};
+                const items = rankedResults.map(item => {
+                    const id = `tmdb-movie-${item.id}`;
+                    const poster = this.buildPosterUrl(item.poster_path);
+                    if (poster) {
+                        posters[id] = poster;
+                    }
+
+                    return {
+                        id,
+                        title: item.title || 'Untitled',
+                        year: this.getYear(item.release_date),
+                        rating: item.vote_average ? Number(item.vote_average.toFixed(1)) : undefined,
+                        numVotes: item.vote_count,
+                        genres: []
+                    } as MovieListItem;
+                });
+
+                return {
+                    items,
+                    posters,
+                    page: response.page,
+                    totalPages: response.total_pages
+                };
+            }),
+            catchError(() => of({ items: [], posters: {}, page: 1, totalPages: 1 }))
+        );
+    }
+
+    discoverTvShows(page: number, query?: string, genreId?: number, minRating?: number, sortBy: 'top_rated' | 'popularity' = 'top_rated'): Observable<{ items: MovieListItem[]; posters: Record<string, string>; page: number; totalPages: number }> {
+        const isSearch = !!(query && query.trim().length > 0);
+        const isFiltered = !!genreId || !!(minRating && minRating > 0);
+        const useMainstreamTopRated = !isSearch && !isFiltered && sortBy === 'top_rated';
+
+        const base = isSearch
+            ? `${this.baseUrl}/search/tv`
+            : `${this.baseUrl}/discover/tv`;
+
+        let url = `${base}?api_key=${this.apiKey}&page=${page}`;
+
+        if (query && query.trim().length > 0) {
+            url += `&query=${encodeURIComponent(query.trim())}`;
+        }
+        if (genreId) {
+            url += `&with_genres=${genreId}`;
+        }
+        if (minRating && minRating > 0) {
+            url += `&vote_average.gte=${minRating}`;
+            url += '&vote_count.gte=100';
+        }
+        if (sortBy === 'top_rated') {
+            const voteFloor = useMainstreamTopRated ? 1800 : (isFiltered ? 50 : 450);
+            url += `&vote_count.gte=${voteFloor}`;
+            url += '&sort_by=vote_average.desc';
+            if (useMainstreamTopRated) {
+                url += '&with_original_language=en';
+            }
+        }
+        if (!isSearch && sortBy !== 'top_rated') {
+            url += sortBy === 'popularity' ? '&sort_by=popularity.desc' : '&sort_by=vote_average.desc';
+        }
+
+        return this.http.get<TmdbDiscoverResponse>(url).pipe(
+            map(response => {
+                const rankedResults = sortBy === 'top_rated'
+                    ? this.sortByWeightedScore(response.results, 'tv')
+                    : response.results;
+                const posters: Record<string, string> = {};
+                const items = rankedResults.map(item => {
+                    const id = `tmdb-tv-${item.id}`;
+                    const poster = this.buildPosterUrl(item.poster_path);
+                    if (poster) {
+                        posters[id] = poster;
+                    }
+
+                    return {
+                        id,
+                        title: item.name || 'Untitled',
+                        year: this.getYear(item.first_air_date),
+                        rating: item.vote_average ? Number(item.vote_average.toFixed(1)) : undefined,
+                        numVotes: item.vote_count,
+                        genres: []
+                    } as MovieListItem;
+                });
+
+                return {
+                    items,
+                    posters,
+                    page: response.page,
+                    totalPages: response.total_pages
+                };
+            }),
+            catchError(() => of({ items: [], posters: {}, page: 1, totalPages: 1 }))
+        );
+    }
+
+    getTmdbMediaDetail(id: number, mediaType: 'movie' | 'tv'): Observable<{ detail: MovieDetail; poster: string | null; backdrop: string | null; overview: string | null; castPhotos: Record<string, string> }> {
+        const detailUrl = `${this.baseUrl}/${mediaType}/${id}?api_key=${this.apiKey}`;
+        const creditsUrl = `${this.baseUrl}/${mediaType}/${id}/credits?api_key=${this.apiKey}`;
+
+        return forkJoin({
+            detail: this.http.get<TmdbDetailResponse>(detailUrl),
+            credits: this.http.get<TmdbCreditsResponse>(creditsUrl).pipe(catchError(() => of({ id, cast: [] })))
+        }).pipe(
+            map(({ detail, credits }) => {
+                const stars: StarInfo[] = [];
+                const photos: Record<string, string> = {};
+
+                credits.cast.slice(0, 20).forEach(member => {
+                    stars.push({ id: String(member.id), name: member.name });
+                    const photoUrl = this.getProfileImageUrl(member.profile_path);
+                    if (photoUrl) {
+                        photos[member.name] = photoUrl;
+                    }
+                });
+
+                return {
+                    detail: {
+                        id: `${mediaType === 'movie' ? 'tmdb-movie-' : 'tmdb-tv-'}${id}`,
+                        title: detail.title || detail.name || 'Untitled',
+                        year: this.getYear(detail.release_date || detail.first_air_date),
+                        rating: detail.vote_average ? Number(detail.vote_average.toFixed(1)) : undefined,
+                        numVotes: detail.vote_count,
+                        genres: (detail.genres || []).map(g => ({ id: g.id, name: g.name })),
+                        stars
+                    },
+                    poster: this.buildPosterUrl(detail.poster_path),
+                    backdrop: detail.backdrop_path ? `${this.imageBaseUrl}/w1280${detail.backdrop_path}` : null,
+                    overview: detail.overview || null,
+                    castPhotos: photos
+                };
+            }),
+            catchError(() => of({
+                detail: {
+                    id: `${mediaType === 'movie' ? 'tmdb-movie-' : 'tmdb-tv-'}${id}`,
+                    title: 'Unknown title',
+                    genres: [],
+                    stars: []
+                },
+                poster: null,
+                backdrop: null,
+                overview: null,
+                castPhotos: {}
+            }))
+        );
+    }
+
+    getImdbRatingForTmdb(tmdbId: number, mediaType: 'movie' | 'tv'): Observable<number | undefined> {
+        const externalIdsUrl = `${this.baseUrl}/${mediaType}/${tmdbId}/external_ids?api_key=${this.apiKey}`;
+
+        return this.http.get<TmdbExternalIdsResponse>(externalIdsUrl).pipe(
+            map(response => response.imdb_id || null),
+            catchError(() => of(null)),
+            map(imdbId => imdbId?.trim() || null),
+            switchMap(imdbId => {
+                if (!imdbId) {
+                    return of(undefined);
+                }
+                const mediaPath = mediaType === 'movie' ? 'movie' : 'series';
+                const url = `https://v3-cinemeta.strem.io/meta/${mediaPath}/${imdbId}.json`;
+                return this.http.get<CinemetaMetaResponse>(url).pipe(
+                    map(metaResponse => {
+                        const ratingText = metaResponse.meta?.imdbRating;
+                        if (!ratingText) {
+                            return undefined;
+                        }
+                        const parsed = Number.parseFloat(ratingText);
+                        return Number.isNaN(parsed) ? undefined : Number(parsed.toFixed(1));
+                    }),
+                    catchError(() => of(undefined))
+                );
+            })
+        );
+    }
+
+    getImdbVotesForTmdb(tmdbId: number, mediaType: 'movie' | 'tv'): Observable<number | undefined> {
+        if (!this.omdbApiKey) {
+            return of(undefined);
+        }
+
+        const externalIdsUrl = `${this.baseUrl}/${mediaType}/${tmdbId}/external_ids?api_key=${this.apiKey}`;
+
+        return this.http.get<TmdbExternalIdsResponse>(externalIdsUrl).pipe(
+            map(response => response.imdb_id || null),
+            catchError(() => of(null)),
+            map(imdbId => imdbId?.trim() || null),
+            switchMap(imdbId => {
+                if (!imdbId) {
+                    return of(undefined);
+                }
+
+                const url = `https://www.omdbapi.com/?i=${imdbId}&apikey=${this.omdbApiKey}`;
+                return this.http.get<OmdbTitleResponse>(url).pipe(
+                    map(omdb => {
+                        const text = omdb.imdbVotes;
+                        if (!text) {
+                            return undefined;
+                        }
+                        const normalized = text.replace(/,/g, '');
+                        const parsed = Number.parseInt(normalized, 10);
+                        return Number.isNaN(parsed) ? undefined : parsed;
+                    }),
+                    catchError(() => of(undefined))
+                );
+            })
+        );
     }
 
     /**
      * Find a movie/TV show by IMDB ID and return the full cast with photos
      */
     getCastByImdbId(imdbId: string): Observable<TmdbCastMember[]> {
-        if (!imdbId || !this.apiKey) return of([]);
+        if (!imdbId) return of([]);
 
         return new Observable<TmdbCastMember[]>(subscriber => {
             this.http.get<any>(
@@ -86,7 +447,7 @@ export class TmdbService {
      * Get poster and backdrop URLs for a movie/TV show by IMDB ID
      */
     getPosterByImdbId(imdbId: string): Observable<{ poster: string | null; backdrop: string | null; overview: string | null }> {
-        if (!imdbId || !this.apiKey) return of({ poster: null, backdrop: null, overview: null });
+        if (!imdbId) return of({ poster: null, backdrop: null, overview: null });
 
         return new Observable(subscriber => {
             this.http.get<any>(
