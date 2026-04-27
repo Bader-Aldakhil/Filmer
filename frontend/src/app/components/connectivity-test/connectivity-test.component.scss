@@ -8,7 +8,7 @@
   background: white;
   border-radius: 8px;
   padding: 2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 3px rgb(0, 0, 0, 0.12);
 
   h2 {
     margin: 0 0 0.5rem 0;
@@ -65,7 +65,7 @@
   margin: 0 1rem;
   display: none;
 
-  @media (min-width: 768px) {
+  @media (width >= 768px) {
     display: block;
   }
 }
@@ -89,7 +89,7 @@
 
     &:hover:not(:disabled) {
       background-color: #1557b0;
-      box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3);
+      box-shadow: 0 2px 8px rgb(26, 115, 232, 0.3);
     }
 
     &:disabled {
@@ -173,7 +173,7 @@
         margin: 0.5rem 0;
         font-family: monospace;
         white-space: pre-wrap;
-        word-wrap: break-word;
+        overflow-wrap: break-word;
       }
     }
 
@@ -234,12 +234,11 @@
     background-color: #f5f5f5;
     padding: 1rem;
     border-radius: 4px;
-    overflow-x: auto;
+    overflow: auto auto;
     font-family: 'Courier New', monospace;
     font-size: 0.9rem;
     margin: 0.5rem 0 1rem 0;
     max-height: 300px;
-    overflow-y: auto;
   }
 }
 
@@ -250,7 +249,7 @@
   margin-top: 1rem;
 
   .status-item {
-    background-color: rgba(255, 255, 255, 0.5);
+    background-color: rgb(255, 255, 255, 0.5);
     padding: 1rem;
     border-radius: 4px;
 
@@ -268,7 +267,7 @@
       border-radius: 3px;
       border: 1px solid #e0e0e0;
       font-family: monospace;
-      word-break: break-word;
+      overflow-wrap: break-word;
     }
   }
 }

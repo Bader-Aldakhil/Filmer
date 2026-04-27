@@ -12,10 +12,10 @@
 
 .panel {
   background: linear-gradient(180deg, #1a1a1a 0%, #141414 100%);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgb(255,255,255,0.1);
   border-radius: 10px;
   padding: 1rem;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.26);
+  box-shadow: 0 10px 24px rgb(0, 0, 0, 0.26);
 }
 
 .order {
@@ -24,7 +24,7 @@
   display: flex;
   justify-content: space-between;
   margin: 0.4rem 0;
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid rgb(255,255,255,0.15);
   border-radius: 8px;
   background: #0f0f0f;
   color: #fff;
@@ -33,7 +33,7 @@
   transition: border-color 0.2s ease, transform 0.2s ease;
 
   &:hover {
-    border-color: rgba(229, 9, 20, 0.5);
+    border-color: rgb(229, 9, 20, 0.5);
     transform: translateY(-1px);
   }
 }
@@ -46,21 +46,21 @@
 
 .watch-link {
   margin-left: 0.5rem;
-  color: #ffffff;
+  color: #fff;
   text-decoration: none;
   font-size: 0.78rem;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border: 1px solid rgb(255, 255, 255, 0.28);
   border-radius: 999px;
   padding: 0.1rem 0.45rem;
 
   &:hover {
-    border-color: rgba(229, 9, 20, 0.8);
-    background: rgba(229, 9, 20, 0.2);
+    border-color: rgb(229, 9, 20, 0.8);
+    background: rgb(229, 9, 20, 0.2);
   }
 }
 
 .total {
-  border-top: 1px solid rgba(255,255,255,0.15);
+  border-top: 1px solid rgb(255,255,255,0.15);
   padding-top: 0.7rem;
 }
 
@@ -84,8 +84,8 @@
 
     &:focus {
       outline: none;
-      border-color: rgba(229, 9, 20, 0.85);
-      box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.2);
+      border-color: rgb(229, 9, 20, 0.85);
+      box-shadow: 0 0 0 2px rgb(229, 9, 20, 0.2);
     }
   }
 
@@ -107,6 +107,6 @@
 .error { color: #ffadad; }
 .muted { color: #a0a0a0; }
 
-@media (max-width: 900px) {
+@media (width <= 900px) {
   .grid { grid-template-columns: 1fr; }
 }

@@ -2,6 +2,7 @@
     background-color: var(--netflix-black);
     min-height: 100vh;
     margin-top: -80px;
+
     /* Offset the padding from app-content so the backdrop hits the top window edge */
 }
 
@@ -13,19 +14,17 @@
     background-position: center 20%;
     display: flex;
     align-items: flex-end;
+
     /* content pushed to bottom */
 
     .backdrop-overlay {
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        inset: 0 0 0 0;
         background: linear-gradient(to bottom,
-                rgba(20, 20, 20, 0.3) 0%,
-                rgba(20, 20, 20, 0.7) 60%,
+                rgb(20, 20, 20, 0.3) 0%,
+                rgb(20, 20, 20, 0.7) 60%,
                 var(--netflix-black) 100%);
-        box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.9);
+        box-shadow: inset 0 0 100px rgb(0, 0, 0, 0.9);
         z-index: 1;
     }
 
@@ -37,7 +36,7 @@
 }
 
 .text-shadow {
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    text-shadow: 2px 2px 4px rgb(0, 0, 0, 0.8);
 }
 
 .hover-op-100 {
@@ -67,7 +66,7 @@
         .hover-scale {
             transform: scale(1.05);
             border-color: #555 !important;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5) !important;
+            box-shadow: 0 10px 20px rgb(0, 0, 0, 0.5) !important;
         }
 
         h6 {

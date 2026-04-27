@@ -22,6 +22,8 @@ jobs:
         cache-dependency-path: frontend/package-lock.json
     - name: Install dependencies
       run: npm ci
+    - name: Run CSS Validation (Stylelint)
+      run: npm run lint:css
     - name: Run frontend tests
       run: npm test -- --watch=false --browsers=ChromeHeadless
 

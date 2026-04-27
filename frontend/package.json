@@ -14,6 +14,7 @@
     "test": "ng test --watch=false --browsers=ChromeHeadless",
     "test:watch": "ng test",
     "lint": "ng lint",
+    "lint:css": "stylelint \"src/**/*.scss\"",
     "e2e": "playwright test",
     "e2e:headed": "playwright test --headed",
     "e2e:ui": "playwright test --ui",
@@ -48,6 +49,9 @@
     "karma-coverage": "^2.2.0",
     "karma-jasmine": "^5.1.0",
     "karma-jasmine-html-reporter": "^2.1.0",
+    "stylelint": "^17.9.0",
+    "stylelint-config-standard": "^40.0.0",
+    "stylelint-config-standard-scss": "^17.0.0",
     "typescript": "^5.2.0"
   }
 }
