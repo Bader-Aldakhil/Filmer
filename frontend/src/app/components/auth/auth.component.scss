@@ -7,10 +7,10 @@
 .auth-card {
   width: min(520px, 100%);
   background: linear-gradient(180deg, #191919 0%, #141414 100%);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgb(255, 255, 255, 0.14);
   border-radius: 12px;
   padding: 1.35rem;
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.36);
+  box-shadow: 0 14px 30px rgb(0, 0, 0, 0.36);
 }
 
 .mode-switch {
@@ -20,7 +20,7 @@
 
   button {
     flex: 1;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgb(255, 255, 255, 0.2);
     background: #0f0f0f;
     color: #fff;
     border-radius: 8px;
@@ -30,12 +30,12 @@
     transition: background 0.2s ease, border-color 0.2s ease;
 
     &:hover {
-      border-color: rgba(255, 255, 255, 0.35);
+      border-color: rgb(255, 255, 255, 0.35);
     }
 
     &.active {
       border-color: var(--netflix-red);
-      background: rgba(229, 9, 20, 0.2);
+      background: rgb(229, 9, 20, 0.2);
     }
   }
 }
@@ -59,8 +59,8 @@
 
     &:focus {
       outline: none;
-      border-color: rgba(229, 9, 20, 0.85);
-      box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.2);
+      border-color: rgb(229, 9, 20, 0.85);
+      box-shadow: 0 0 0 2px rgb(229, 9, 20, 0.2);
     }
   }
 }
@@ -92,7 +92,7 @@
   margin: 0.5rem 0 0;
 }
 
-@media (max-width: 640px) {
+@media (width <= 640px) {
   .auth-page {
     padding-left: 0.25rem;
     padding-right: 0.25rem;

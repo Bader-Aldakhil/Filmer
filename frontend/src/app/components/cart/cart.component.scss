@@ -46,10 +46,10 @@
 
 .empty, .muted, .error {
   background: linear-gradient(180deg, #1a1a1a 0%, #151515 100%);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgb(255,255,255,0.1);
   border-radius: 10px;
   padding: 1rem;
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.26);
+  box-shadow: 0 10px 22px rgb(0, 0, 0, 0.26);
 }
 
 .error {
@@ -67,13 +67,19 @@
   align-items: center;
   gap: 1rem;
   background: linear-gradient(180deg, #1a1a1a 0%, #141414 100%);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgb(255,255,255,0.1);
   border-radius: 10px;
   padding: 0.95rem;
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.24);
+  box-shadow: 0 10px 22px rgb(0, 0, 0, 0.24);
 
-  h4 { margin: 0; }
-  p { margin: 0; color: #999; }
+  h4 {
+    margin: 0;
+  }
+
+  p {
+    margin: 0;
+    color: #999;
+  }
 }
 
 .price {
@@ -84,10 +90,10 @@
 
 .remove {
   background: #232323;
-  border: 1px solid rgba(255,255,255,0.25);
+  border: 1px solid rgb(255,255,255,0.25);
 
   &:hover {
-    border-color: rgba(255, 255, 255, 0.45);
+    border-color: rgb(255, 255, 255, 0.45);
     background: #2e2e2e;
   }
 }
@@ -104,7 +110,7 @@
   justify-self: end;
 }
 
-@media (max-width: 840px) {
+@media (width <= 840px) {
   .head {
     flex-direction: column;
     align-items: flex-start;

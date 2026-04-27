@@ -12,10 +12,10 @@
 
 .panel {
   background: linear-gradient(180deg, #1a1a1a 0%, #141414 100%);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgb(255,255,255,0.1);
   border-radius: 10px;
   padding: 1rem;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.26);
+  box-shadow: 0 10px 24px rgb(0, 0, 0, 0.26);
 }
 
 .error { color: #ffadad; }
@@ -37,7 +37,7 @@
 .total {
   margin-top: 0.8rem;
   padding-top: 0.8rem;
-  border-top: 1px solid rgba(255,255,255,0.15);
+  border-top: 1px solid rgb(255,255,255,0.15);
 }
 
 label {
@@ -57,8 +57,8 @@ input {
 
   &:focus {
     outline: none;
-    border-color: rgba(229, 9, 20, 0.85);
-    box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.2);
+    border-color: rgb(229, 9, 20, 0.85);
+    box-shadow: 0 0 0 2px rgb(229, 9, 20, 0.2);
   }
 }
 
@@ -85,7 +85,7 @@ input {
 
 .payment-note {
   margin-top: 0.65rem;
-  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border: 1px dashed rgb(255, 255, 255, 0.2);
   border-radius: 8px;
   padding: 0.45rem 0.6rem;
   color: #c9c9c9;
@@ -97,6 +97,6 @@ input {
   }
 }
 
-@media (max-width: 900px) {
+@media (width <= 900px) {
   .grid { grid-template-columns: 1fr; }
 }

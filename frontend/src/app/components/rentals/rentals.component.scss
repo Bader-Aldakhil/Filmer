@@ -2,12 +2,12 @@
   max-width: 1300px;
   margin: 0 auto;
   padding-bottom: 4rem;
-  font-family: 'Inter', 'Outfit', sans-serif;
+  font-family: Inter, Outfit, sans-serif;
 }
 
 /* ── Page header ─────────────────────────────── */
 .page-header {
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  border-bottom: 1px solid rgb(255,255,255,0.07);
   padding-bottom: 1.25rem;
 }
 
@@ -35,7 +35,7 @@
 /* ── Rental card ─────────────────────────────── */
 .rental-card {
   background: linear-gradient(180deg, #1c1c1c 0%, #141414 100%);
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid rgb(255,255,255,0.08);
   border-radius: 14px;
   overflow: hidden;
   display: flex;
@@ -45,8 +45,8 @@
 
   &:hover {
     transform: translateY(-5px) scale(1.01);
-    box-shadow: 0 22px 50px rgba(0,0,0,0.5);
-    border-color: rgba(229, 9, 20, 0.35);
+    box-shadow: 0 22px 50px rgb(0,0,0,0.5);
+    border-color: rgb(229, 9, 20, 0.35);
 
     .poster-overlay {
       opacity: 1;
@@ -81,7 +81,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255,255,255,0.15);
+  color: rgb(255,255,255,0.15);
   font-size: 3rem;
   background: linear-gradient(135deg, #111 0%, #1a1a1a 100%);
 }
@@ -101,21 +101,21 @@
 }
 
 .badge-tv {
-  background: rgba(229, 9, 20, 0.85);
+  background: rgb(229, 9, 20, 0.85);
   color: #fff;
 }
 
 .badge-movie {
-  background: rgba(30, 30, 30, 0.85);
-  color: rgba(255,255,255,0.8);
-  border: 1px solid rgba(255,255,255,0.15);
+  background: rgb(30, 30, 30, 0.85);
+  color: rgb(255,255,255,0.8);
+  border: 1px solid rgb(255,255,255,0.15);
 }
 
 /* ── Hover overlay ───────────────────────────── */
 .poster-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.55);
+  background: rgb(0,0,0,0.55);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -134,12 +134,12 @@
   justify-content: center;
   font-size: 1.6rem;
   text-decoration: none;
-  box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.35);
+  box-shadow: 0 0 0 3px rgb(229, 9, 20, 0.35);
   transition: transform 0.15s, box-shadow 0.15s;
 
   &:hover {
     transform: scale(1.1);
-    box-shadow: 0 0 0 6px rgba(229, 9, 20, 0.3);
+    box-shadow: 0 0 0 6px rgb(229, 9, 20, 0.3);
   }
 }
 
@@ -164,7 +164,7 @@
 
 .card-meta {
   font-size: 0.78rem;
-  color: rgba(255,255,255,0.4);
+  color: rgb(255,255,255,0.4);
   margin: 0 0 0.6rem;
 }
 
@@ -244,7 +244,7 @@
 }
 
 .empty-sub {
-  color: rgba(255,255,255,0.45);
+  color: rgb(255,255,255,0.45);
   margin-bottom: 1.5rem;
 }
 
@@ -266,11 +266,11 @@
 
   &--outline {
     background: transparent;
-    border: 1px solid rgba(255,255,255,0.25);
+    border: 1px solid rgb(255,255,255,0.25);
     color: #fff;
 
     &:hover {
-      background: rgba(255,255,255,0.07);
+      background: rgb(255,255,255,0.07);
     }
   }
 }
@@ -283,13 +283,13 @@
 }
 
 .error-panel {
-  background: rgba(229, 9, 20, 0.12);
-  border: 1px solid rgba(229, 9, 20, 0.3);
+  background: rgb(229, 9, 20, 0.12);
+  border: 1px solid rgb(229, 9, 20, 0.3);
   color: #ffb4b4;
 }
 
 /* ── Responsive ──────────────────────────────── */
-@media (max-width: 576px) {
+@media (width <= 576px) {
   .items-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
