@@ -43,7 +43,7 @@ export interface PlaybackGrant {
 export class ApiService {
   // Base URL for the backend API
   // In production, this should be moved to an environment configuration
-  private readonly API_BASE_URL = 'http://localhost:8080/api/v1';
+  private readonly API_BASE_URL = 'https://localhost:8443/api/v1';
   private readonly WITH_CREDENTIALS = { withCredentials: true };
 
   constructor(private http: HttpClient) { }

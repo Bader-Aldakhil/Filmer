@@ -51,7 +51,7 @@ export class ConnectivityTestComponent implements OnInit {
         let errorMessage = 'Unknown error occurred';
 
         if (error.status === 0) {
-          errorMessage = 'Cannot connect to backend server. Is it running on http://localhost:8080?';
+          errorMessage = 'Cannot connect to backend server. Is it running on https://localhost:8443?';
         } else if (error.status === 503) {
           errorMessage = 'Database connection failed. Is PostgreSQL running?';
         } else if (error.status >= 500) {
