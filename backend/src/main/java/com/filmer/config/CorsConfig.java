@@ -16,6 +16,7 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
                 .allowedOrigins(
+                    "https://localhost:4200",     // Angular dev server with SSL
                     "http://localhost:4200",      // Angular dev server
                     "http://127.0.0.1:4200",      // Alternative localhost
                     "http://localhost:3000"       // Alternative port if needed

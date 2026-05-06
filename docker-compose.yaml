@@ -11,13 +11,14 @@ services:
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/filmer
       DB_USER: postgres
-      DB_PASSWORD: filmer_dev_password
+      DB_PASSWORD: ${DB_PASSWORD}
+      SSL_PASSWORD: ${SSL_PASSWORD}
       STREAMING_PROVIDER_MOVIE_TEMPLATE: https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4
       STREAMING_PROVIDER_SERIES_TEMPLATE: https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4
       STREAMING_PROVIDER_FALLBACK_MOVIE_TEMPLATE: https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4
       STREAMING_PROVIDER_FALLBACK_SERIES_TEMPLATE: https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4
     ports:
-      - "8080:8080"
+      - "8443:8443"
     networks:
       - filmer-network
     depends_on:
@@ -33,7 +34,7 @@ services:
       # Database credentials - these match the environment variables in application.properties
       POSTGRES_DB: filmer
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: filmer_dev_password
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -55,8 +56,8 @@ services:
     container_name: filmer-pgadmin
     restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@filmer.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
       PGADMIN_CONFIG_SERVER_MODE: 'False'
     ports:
       - "5050:80"

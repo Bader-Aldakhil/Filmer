@@ -11,6 +11,7 @@ import { CartComponent } from './components/cart/cart.component';
 import { CheckoutComponent } from './components/checkout/checkout.component';
 import { OrdersComponent } from './components/orders/orders.component';
 import { WatchComponent } from './components/watch/watch.component';
+import { authGuard } from './guards/auth.guard';
 export const APP_ROUTES: Routes = [
   {
     path: '',
@@ -42,12 +43,14 @@ export const APP_ROUTES: Routes = [
   },
   {
     path: 'favorites',
-    component: FavoritesComponent
+    component: FavoritesComponent,
+    canActivate: [authGuard]
   },
   {
     path: 'rentals',
     component: RentalsComponent,
-    title: 'Filmer - My Rentals'
+    title: 'Filmer - My Rentals',
+    canActivate: [authGuard]
   },
   {
     path: 'auth',
@@ -57,22 +60,26 @@ export const APP_ROUTES: Routes = [
   {
     path: 'cart',
     component: CartComponent,
-    title: 'Filmer - Cart'
+    title: 'Filmer - Cart',
+    canActivate: [authGuard]
   },
   {
     path: 'checkout',
     component: CheckoutComponent,
-    title: 'Filmer - Checkout'
+    title: 'Filmer - Checkout',
+    canActivate: [authGuard]
   },
   {
     path: 'orders',
     component: OrdersComponent,
-    title: 'Filmer - Orders'
+    title: 'Filmer - Orders',
+    canActivate: [authGuard]
   },
   {
     path: 'watch/:movieId',
     component: WatchComponent,
-    title: 'Filmer - Watch'
+    title: 'Filmer - Watch',
+    canActivate: [authGuard]
   },
   {
     path: 'search',
