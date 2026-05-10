@@ -92,12 +92,15 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
     const hasSpecificParams = !!seasonParamStr || !!episodeParamStr;
 
     const checkAccess = () => {
-      this.apiService.canWatch(this.movieId).subscribe({
-        next: (accessRes) => this.handleAccess(accessRes.data),
-        error: (err) => {
-          this.loading = false;
-          this.error = err?.error?.error?.message || 'Unable to verify playback access.';
-        }
+      // First, ensure we have the correct ID for the access check (prefer IMDB IDs if available)
+      this.resolveAccessId(this.movieId).subscribe(accessId => {
+        this.apiService.canWatch(accessId).subscribe({
+          next: (accessRes) => this.handleAccess(accessRes.data),
+          error: (err) => {
+            this.loading = false;
+            this.error = err?.error?.error?.message || 'Unable to verify playback access.';
+          }
+        });
       });
     };
 
@@ -291,7 +294,7 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
             }
           };
 
-          this.sandboxConfig = (grant.provider === 'p2p' || grant.provider === 'vidking') ? null : 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-top-navigation-by-user-activation allow-modals allow-downloads';
+          this.sandboxConfig = (grant.provider === 'p2p' || grant.provider === 'vidking') ? null : 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-modals allow-downloads';
           finalizeEmbed(url);
           return;
         }
@@ -354,6 +357,36 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.currentEpisodes.includes(this.episode)) {
       this.episode = 1;
     }
+  }
+
+  private resolveAccessId(id: string): Observable<string> {
+    if (!id) return of('');
+    if (id.startsWith('tt')) return of(id);
+
+    // If it's a TMDB ID, try to find the IMDB ID for database check
+    let tmdbIdNum: number | null = null;
+    let type: 'movie' | 'tv' = 'movie';
+
+    if (id.startsWith('tmdb-movie-')) {
+      tmdbIdNum = Number.parseInt(id.replace('tmdb-movie-', ''), 10);
+    } else if (id.startsWith('tmdb-tv-')) {
+      tmdbIdNum = Number.parseInt(id.replace('tmdb-tv-', ''), 10);
+      type = 'tv';
+    } else if (id.startsWith('s')) {
+      tmdbIdNum = Number.parseInt(id.substring(1), 10);
+      type = 'tv';
+    } else if (id.startsWith('m')) {
+      tmdbIdNum = Number.parseInt(id.substring(1), 10);
+    }
+
+    if (tmdbIdNum && !Number.isNaN(tmdbIdNum)) {
+      return this.tmdbService.getTmdbMediaDetail(tmdbIdNum, type).pipe(
+        map(res => res.detail.imdbId || id),
+        catchError(() => of(id))
+      );
+    }
+
+    return of(id);
   }
 
   private resolveTmdbTvId(id: string): Observable<number | null> {
