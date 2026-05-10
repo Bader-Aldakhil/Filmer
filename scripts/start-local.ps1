@@ -38,9 +38,9 @@ try {
     )
 
     Write-Host 'Opening website...'
-    Start-Process 'http://localhost:4200/'
+    Start-Process 'https://localhost:4200/'
 
-    Write-Host 'Done. Frontend: http://localhost:4200  Backend: http://localhost:8080/api/v1/health'
+    Write-Host 'Done. Frontend: https://localhost:4200  Backend: https://localhost:8443/api/v1/health'
 } finally {
     Pop-Location
 }

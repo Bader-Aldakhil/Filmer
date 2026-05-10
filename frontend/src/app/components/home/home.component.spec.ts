@@ -33,7 +33,7 @@ describe('HomeComponent', () => {
 
     expect(component.features.length).toBe(4);
     expect(cards.length).toBe(4);
-    expect(component.features.map(feature => feature.title)).toEqual([
+    expect(component.features.map((feature: { title: string }) => feature.title)).toEqual([
       'Browse Movies',
       'Search & Filter',
       'Rent Movies',

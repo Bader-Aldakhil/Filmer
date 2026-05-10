@@ -1,15 +1,18 @@
 import { inject } from '@angular/core';
-import { Router, CanActivateFn } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivateFn, Router, RouterStateSnapshot } from '@angular/router';
 import { ApiService } from '../services/api.service';
-import { catchError, map } from 'rxjs';
+import { catchError, map, of } from 'rxjs';
 
-export const authGuard: CanActivateFn = (route, state) => {
+export const authGuard: CanActivateFn = (
+  _route: ActivatedRouteSnapshot,
+  _state: RouterStateSnapshot
+) => {
   const router = inject(Router);
   const apiService = inject(ApiService);
-  
+
   return apiService.checkSession().pipe(
     map(response => {
-      if (response && response.status === 'success') {
+      if (response?.success === true && response?.data?.authenticated === true) {
         return true;
       }
       router.navigate(['/auth']);
@@ -17,7 +20,7 @@ export const authGuard: CanActivateFn = (route, state) => {
     }),
     catchError(() => {
       router.navigate(['/auth']);
-      return false;
+      return of(false);
     })
   );
 };

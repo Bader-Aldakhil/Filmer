@@ -68,7 +68,7 @@ This command will:
 - Start Docker Desktop (if installed)
 - Start PostgreSQL and backend using Docker Compose
 - Start Angular frontend in a new PowerShell window
-- Open http://localhost:4200/
+- Open https://localhost:4200/
 
 To stop services:
 
@@ -77,6 +77,14 @@ powershell -ExecutionPolicy Bypass -File .\scripts\stop-local.ps1
 ```
 
 Note: close the Angular terminal window manually if it is still running.
+
+### Phase 6 HTTPS Local Notes
+- Frontend dev URL: `https://localhost:4200`
+- Backend API URL: `https://localhost:8443/api/v1`
+- Frontend uses a dev proxy (`frontend/proxy.conf.json`) and calls `/api/v1/*` to avoid browser failures caused by backend self-signed cert validation during XHR.
+- Backend still runs on HTTPS, and protected routes/session checks remain enforced.
+- First run may still prompt for trusting the frontend dev certificate. This is expected for local HTTPS.
+
 
 ### Prerequisites
 * **Docker Desktop** - [Download here](https://www.docker.com/products/docker-desktop/)
@@ -158,9 +166,9 @@ Before running the connection test, ensure the following services are running:
    export DB_PASSWORD="filmer_dev_password"
    mvn spring-boot:run
    ```
-   - Backend runs on: `http://localhost:8080`
-   - Health API endpoint: `http://localhost:8080/api/v1/health`
-   - Database connectivity test endpoint: `http://localhost:8080/api/v1/health/db`
+   - Backend runs on: `https://localhost:8443`
+   - Health API endpoint: `https://localhost:8443/api/v1/health`
+   - Database connectivity test endpoint: `https://localhost:8443/api/v1/health/db`
 
 3. **Angular Frontend**:
    ```bash
@@ -168,14 +176,14 @@ Before running the connection test, ensure the following services are running:
    npm install
    npm start
    ```
-   - Frontend runs on: `http://localhost:4200`
+   - Frontend runs on: `https://localhost:4200`
    - Angular dev server opens automatically (or navigate manually)
 
 ### Running the Connection Test
 
 Once all three services are running:
 
-1. Open your browser and navigate to: **http://localhost:4200**
+1. Open your browser and navigate to: **https://localhost:4200**
 2. Click on the **"Connection Test"** link in the navigation menu
 3. Click the **"Test Connection"** button
 
@@ -194,7 +202,7 @@ Once all three services are running:
 | Issue | Symptom | Solution |
 |-------|---------|----------|
 | PostgreSQL not running | Error: "Cannot connect to backend" or "Database connection failed (503)" | Run `docker-compose up -d postgres` |
-| Backend not running | Error: "Cannot connect to backend server. Is it running on http://localhost:8080?" | Run `mvn spring-boot:run` in backend folder |
+| Backend not running | Error: "Cannot connect to backend server. Is it running on https://localhost:8443?" | Run backend with Docker Compose or `mvn spring-boot:run` with HTTPS config |
 | CORS configuration error | Error: "Access to XMLHttpRequest blocked by CORS policy" | CORS is already configured in backend (src/main/java/com/filmer/config/CorsConfig.java) |
 | Environment variables not set | Backend runs but cannot connect to database | Set environment variables: DB_URL, DB_USER, DB_PASSWORD |
 
@@ -206,7 +214,7 @@ Once all three services are running:
 
 **Request:**
 ```http
-GET http://localhost:8080/api/v1/health/db
+GET https://localhost:8443/api/v1/health/db
 ```
 
 **Success Response (200 OK):**
@@ -249,7 +257,7 @@ GET http://localhost:8080/api/v1/health/db
 
 3. **Check Backend is Running:**
    ```bash
-   curl http://localhost:8080/api/v1/health
+   curl -k https://localhost:8443/api/v1/health
    # Should return: {"success":true,"data":{"status":"UP","database":"UP",...}}
    ```
 
@@ -257,7 +265,7 @@ GET http://localhost:8080/api/v1/health/db
    - Open browser DevTools (F12)
    - Navigate to the Network tab
    - Click "Test Connection" button
-   - Look for the request to `http://localhost:8080/api/v1/health/db`
+   - Look for the request to `/api/v1/health/db` from `https://localhost:4200`
    - Check the response tab for details
 
 5. **View Backend Logs:**
@@ -448,7 +456,7 @@ npm run e2e
 Notes:
 - `npm test` runs Karma/Jasmine in headless mode for CI-friendly execution.
 - `npm run e2e` runs Playwright smoke/flow/negative scenarios.
-- E2E assumes backend API is available at `http://localhost:8080` (or mock/intercepted by tests where specified).
+- E2E assumes backend API is available at `https://localhost:8443` (or mock/intercepted by tests where specified).
 - Keep all sensitive config in environment variables; never commit secrets or keys.
 
 ### Backend Unit Tests (Phase 3)

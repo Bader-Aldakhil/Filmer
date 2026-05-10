@@ -33,6 +33,15 @@ export interface PlaybackGrant {
   fallbackUrl?: string | null;
   expiresAt: string;
 }
+
+interface RuntimeConfig {
+  API_BASE_URL?: string;
+}
+
+function resolveApiBaseUrl(): string {
+  const runtime = (window as unknown as { RUNTIME_CONFIG?: RuntimeConfig }).RUNTIME_CONFIG;
+  return runtime?.API_BASE_URL || '/api/v1';
+}
 /**
  * API Service for communicating with the Filmer backend.
  * All HTTP requests to the backend are routed through this service.
@@ -41,9 +50,7 @@ export interface PlaybackGrant {
   providedIn: 'root'
 })
 export class ApiService {
-  // Base URL for the backend API
-  // In production, this should be moved to an environment configuration
-  private readonly API_BASE_URL = 'https://localhost:8443/api/v1';
+  private readonly API_BASE_URL = resolveApiBaseUrl();
   private readonly WITH_CREDENTIALS = { withCredentials: true };
 
   constructor(private http: HttpClient) { }

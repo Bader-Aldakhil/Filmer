@@ -36,8 +36,10 @@ if (fs.existsSync(envPath)) {
 
 const omdbApiKey = env.OMDB_API_KEY || '';
 const tmdbApiKey = env.TMDB_API_KEY || '';
+const apiBaseUrl = env.API_BASE_URL || '/api/v1';
 const fileContent = [
   'window.RUNTIME_CONFIG = {',
+  `  API_BASE_URL: '${apiBaseUrl.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}',`,
   `  TMDB_API_KEY: '${tmdbApiKey.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}',`,
   `  OMDB_API_KEY: '${omdbApiKey.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`,
   '};',

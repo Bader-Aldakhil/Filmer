@@ -31,7 +31,7 @@ describe('ApiService', () => {
       expect(response).toEqual(mockResponse);
     });
 
-    const request = httpMock.expectOne('https://localhost:8443/api/v1/health');
+    const request = httpMock.expectOne('/api/v1/health');
     expect(request.request.method).toBe('GET');
     request.flush(mockResponse);
   });
@@ -43,7 +43,7 @@ describe('ApiService', () => {
       expect(response).toEqual(mockResponse);
     });
 
-    const request = httpMock.expectOne('https://localhost:8443/api/v1/health/db');
+    const request = httpMock.expectOne('/api/v1/health/db');
     expect(request.request.method).toBe('GET');
     request.flush(mockResponse);
   });
@@ -59,7 +59,7 @@ describe('ApiService', () => {
       }
     });
 
-    const request = httpMock.expectOne('https://localhost:8443/api/v1/health');
+    const request = httpMock.expectOne('/api/v1/health');
     request.flush({ message: expectedMessage }, { status: 503, statusText: expectedMessage });
   });
 });

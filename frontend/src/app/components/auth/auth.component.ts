@@ -43,9 +43,13 @@ export class AuthComponent {
 
     request$.subscribe({
       next: () => {
-        this.authState.refreshSession().subscribe(() => {
+        this.authState.refreshSession().subscribe((session) => {
           this.loading = false;
-          this.router.navigate(['/cart']);
+          if (session?.authenticated) {
+            this.router.navigate(['/cart']);
+            return;
+          }
+          this.error = 'Login succeeded, but session validation failed. Please try again.';
         });
       },
       error: (err) => {
