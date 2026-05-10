@@ -294,7 +294,6 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
             }
           };
 
-          this.sandboxConfig = (grant.provider === 'p2p' || grant.provider === 'vidking') ? null : 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-modals allow-downloads';
           finalizeEmbed(url);
           return;
         }

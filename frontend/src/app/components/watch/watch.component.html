@@ -98,18 +98,8 @@
   <!-- ── VidSrc embed player ── -->
   <div *ngIf="!loading && !grantLoading && !error && embedUrl" class="player-area px-4 mb-4">
     <div class="video-wrapper">
-      <!-- Direct Iframe (No Sandbox) for Professional/P2P sources -->
-      <iframe *ngIf="sandboxConfig === null"
-        [src]="embedUrl | trustUrl"
-        allowfullscreen
-        allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-        frameborder="0"
-        scrolling="no"
-        referrerpolicy="no-referrer">
-      </iframe>
-
-      <!-- Sandboxed Iframe for Mirror sources to block ads -->
-      <iframe *ngIf="sandboxConfig !== null"
+      <iframe
+        *ngIf="embedUrl"
         [src]="embedUrl | trustUrl"
         allowfullscreen
         allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
