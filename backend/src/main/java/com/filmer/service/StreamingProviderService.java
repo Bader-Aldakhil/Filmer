@@ -1,113 +1,93 @@
 package com.filmer.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.filmer.dto.response.PlaybackGrantResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.LocalDateTime;
 
-/**
- * Streaming provider service that generates embed URLs for real movie/TV content
- * using the VidSrc embed platform (vidsrc.xyz), which resolves titles via IMDb or TMDB IDs.
- *
- * Movies:   https://vidsrc.xyz/embed/movie?imdb={imdbId}   OR  ?tmdb={tmdbId}
- * TV Series: https://vidsrc.xyz/embed/tv?imdb={imdbId}&season=S&episode=E  OR  ?tmdb={tmdbId}&...
- */
 @Service
 public class StreamingProviderService {
 
-    private static final String VIDSRC_BASE = "https://vidsrc.xyz/embed";
-    private static final String PROVIDER_NAME = "vidsrc";
+    private static final String VIDKING_BASE = "https://www.vidking.net/embed";
+    private static final String FALLBACK_BASE = "https://vsrc.su/embed";
 
     private final int grantTtlMinutes;
+    private final HttpClient httpClient;
+    private final ObjectMapper objectMapper;
 
     public StreamingProviderService(
             @Value("${streaming.provider.grant-ttl-minutes:120}") int grantTtlMinutes) {
         this.grantTtlMinutes = Math.max(grantTtlMinutes, 30);
+        this.httpClient  = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
+        this.objectMapper = new ObjectMapper();
     }
 
-    /**
-     * Generate a playback grant containing a VidSrc embed URL for the given title.
-     *
-     * @param movieId   The movie/show ID — may be an IMDb ID (tt...), a synthetic IMDb-like ID,
-     *                  or a TMDB-prefixed ID (tmdb-movie-XXX / tmdb-tv-XXX).
-     * @param titleType The title type string (e.g. "movie", "tvSeries", "tvMiniSeries").
-     * @param season    Season number (series only).
-     * @param episode   Episode number (series only).
-     */
-    public PlaybackGrantResponse generateGrant(String movieId, String titleType, Integer season, Integer episode) {
+    public PlaybackGrantResponse generateGrant(
+            String movieId, String titleType, Integer season, Integer episode) {
+
         boolean isSeries = isSeriesTitle(titleType);
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(grantTtlMinutes);
-
-        String embedUrl = buildEmbedUrl(movieId, isSeries, season, episode);
 
         PlaybackGrantResponse response = new PlaybackGrantResponse();
         response.setMovieId(movieId);
         response.setTitleType(titleType == null ? "movie" : titleType);
         response.setSeason(season);
         response.setEpisode(episode);
-        response.setProvider(PROVIDER_NAME);
-        response.setEmbedUrl(embedUrl);
-        // streamUrl / fallbackUrl are null — embed is used exclusively
-        response.setStreamUrl(null);
-        response.setContentType(null);
-        response.setFallbackUrl(null);
         response.setExpiresAt(expiresAt);
+
+        // ── Vidking Mirror Player ────────────────────────────────────────
+        response.setProvider("vidking");
+        response.setEmbedUrl(buildStreamingUrl(movieId, isSeries, season, episode));
+        response.setStreamUrl(null);
         return response;
     }
 
-    // -------------------------------------------------------------------------
-    // Private helpers
-    // -------------------------------------------------------------------------
-
-    private String buildEmbedUrl(String movieId, boolean isSeries, Integer season, Integer episode) {
-        String mediaType = isSeries ? "tv" : "movie";
-
-        if (movieId == null || movieId.trim().isEmpty()) {
-            return null;
-        }
-
+    private String buildStreamingUrl(String movieId, boolean isSeries, Integer season, Integer episode) {
+        if (movieId == null || movieId.trim().isEmpty()) return null;
         String id = movieId.trim();
-        StringBuilder url = new StringBuilder(VIDSRC_BASE)
-                .append("/")
-                .append(mediaType)
-                .append("?");
-
-        if (id.startsWith("tmdb-movie-")) {
-            // TMDB movie numeric ID
-            String tmdbId = id.replace("tmdb-movie-", "");
-            url.append("tmdb=").append(tmdbId);
-        } else if (id.startsWith("tmdb-tv-")) {
-            // TMDB TV numeric ID
-            String tmdbId = id.replace("tmdb-tv-", "");
-            url.append("tmdb=").append(tmdbId);
-        } else if (id.startsWith("tt")) {
-            // Real IMDb ID
-            url.append("imdb=").append(id);
-        } else if (id.startsWith("s") && id.length() > 1 && id.substring(1).matches("\\d+")) {
-            // Synthetic series ID: s{tmdbId}
-            url.append("tmdb=").append(id.substring(1));
-        } else if (id.startsWith("m") && id.length() > 1 && id.substring(1).matches("\\d+")) {
-            // Synthetic movie ID: m{tmdbId}
-            url.append("tmdb=").append(id.substring(1));
-        } else {
-            // Fallback: treat as IMDb-style
-            url.append("imdb=").append(id);
+        String mediaType = isSeries ? "tv" : "movie";
+        
+        // Clean ID for TMDB-based providers
+        String numericId = id;
+        if (id.startsWith("tmdb-movie-")) numericId = id.replace("tmdb-movie-", "");
+        else if (id.startsWith("tmdb-tv-")) numericId = id.replace("tmdb-tv-", "");
+        else if (id.startsWith("m") && id.length() > 1 && id.substring(1).matches("\\d+")) numericId = id.substring(1);
+        else if (id.startsWith("s") && id.length() > 1 && id.substring(1).matches("\\d+")) numericId = id.substring(1);
+        
+        // Use Vidking if it's a TMDB numeric ID
+        if (numericId.matches("\\d+")) {
+            StringBuilder url = new StringBuilder(VIDKING_BASE)
+                    .append("/").append(mediaType).append("/").append(numericId);
+            if (isSeries) {
+                url.append("/").append(season != null && season >= 1 ? season : 1);
+                url.append("/").append(episode != null && episode >= 1 ? episode : 1);
+            }
+            return url.toString();
         }
-
-        if (isSeries && season != null && season >= 1) {
-            url.append("&season=").append(season);
+        
+        // Fallback for IMDB IDs (tt...) to a mirror that supports them natively
+        StringBuilder url = new StringBuilder(FALLBACK_BASE)
+                .append("/").append(mediaType).append("/").append(id);
+        if (isSeries) {
+            url.append("/").append(season != null && season >= 1 ? season : 1);
+            url.append("/").append(episode != null && episode >= 1 ? episode : 1);
         }
-        if (isSeries && episode != null && episode >= 1) {
-            url.append("&episode=").append(episode);
-        }
-
         return url.toString();
     }
 
     private boolean isSeriesTitle(String titleType) {
         if (titleType == null) return false;
-        String type = titleType.toLowerCase();
-        return type.contains("tv") || type.contains("series");
+        String t = titleType.toLowerCase();
+        return t.contains("tv") || t.contains("series");
     }
 }

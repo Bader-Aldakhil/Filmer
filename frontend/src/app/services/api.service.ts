@@ -43,7 +43,7 @@ export interface PlaybackGrant {
 export class ApiService {
   // Base URL for the backend API
   // In production, this should be moved to an environment configuration
-  private readonly API_BASE_URL = 'https://localhost:8443/api/v1';
+  private readonly API_BASE_URL = '/api/v1';
   private readonly WITH_CREDENTIALS = { withCredentials: true };
 
   constructor(private http: HttpClient) { }
@@ -186,13 +186,16 @@ export class ApiService {
     );
   }
 
-  getPlaybackGrant(movieId: string, season?: number, episode?: number): Observable<ApiResponse<PlaybackGrant>> {
+  getPlaybackGrant(movieId: string, season?: number, episode?: number, tmdbId?: string): Observable<ApiResponse<PlaybackGrant>> {
     const params: Record<string, string> = {};
     if (season != null) {
       params['season'] = String(season);
     }
     if (episode != null) {
       params['episode'] = String(episode);
+    }
+    if (tmdbId != null) {
+      params['tmdbId'] = tmdbId;
     }
 
     return this.http.get<ApiResponse<PlaybackGrant>>(

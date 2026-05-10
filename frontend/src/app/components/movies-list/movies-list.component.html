@@ -1,25 +1,25 @@
-<div class="movies-container px-4">
-  <div class="title-section mb-5 mt-2">
-    <h1 class="display-4 fw-bold text-white">Movies</h1>
+<div class="movies-container px-2 px-md-4">
+  <div class="title-section mb-4 mt-2 px-2">
+    <h1 class="display-4 fw-bold text-white fs-1">Movies</h1>
   </div>
 
-  <div class="filters-row d-flex gap-3 align-items-center mb-4">
+  <div class="filters-row d-flex flex-wrap gap-2 gap-md-3 align-items-center mb-4">
     <!-- Search Bar (stretching on the left) -->
-    <div class="flex-grow-1 position-relative">
+    <div class="flex-grow-1 position-relative w-100 w-md-auto">
       <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
       <input type="text" class="form-control bg-dark text-white border-secondary ps-5 rounded-pill py-2"
         placeholder="Search for movies..." [(ngModel)]="searchQuery" (input)="onFilterSubmit()" name="searchQuery">
     </div>
 
     <!-- Genre Filter (on the right) -->
-    <select class="form-select bg-dark text-white border-secondary w-auto rounded-pill py-2" [(ngModel)]="selectedGenre"
+    <select class="form-select bg-dark text-white border-secondary rounded-pill py-2 flex-grow-1 flex-md-grow-0" style="width: auto; min-width: 140px;" [(ngModel)]="selectedGenre"
       (change)="onFilterSubmit()" name="selectedGenre">
       <option [ngValue]="null">All Genres</option>
       <option *ngFor="let genre of genres" [ngValue]="genre.id">{{ genre.name }}</option>
     </select>
 
     <!-- Rating Filter (on the right) -->
-    <select class="form-select bg-dark text-white border-secondary w-auto rounded-pill py-2" [(ngModel)]="minRating"
+    <select class="form-select bg-dark text-white border-secondary rounded-pill py-2 flex-grow-1 flex-md-grow-0" style="width: auto; min-width: 130px;" [(ngModel)]="minRating"
       (change)="onFilterSubmit()" name="minRating">
       <option [ngValue]="0">Any Rating</option>
       <option [ngValue]="9">9+ ⭐</option>
@@ -31,7 +31,7 @@
 
   </div>
 
-  <div *ngIf="loading" class="row row-cols-2 row-cols-md-4 row-cols-lg-5 row-cols-xl-6 g-4 mb-5">
+  <div *ngIf="loading" class="row row-cols-2 row-cols-md-4 row-cols-lg-5 row-cols-xl-6 g-2 g-md-4 mb-5">
     <div class="col" *ngFor="let skeleton of [1,2,3,4,5,6,7,8,9,10,11,12]">
       <div class="skeleton-card rounded overflow-hidden">
         <div class="skeleton-poster shimmer" style="aspect-ratio: 2/3;"></div>
@@ -51,7 +51,7 @@
 
   <div *ngIf="!loading && !error && movies.length > 0">
     <!-- Netflix style Grid -->
-    <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 row-cols-xl-6 g-4 mb-5">
+    <div class="row row-cols-2 row-cols-md-4 row-cols-lg-5 row-cols-xl-6 g-2 g-md-4 mb-5">
       <div class="col" *ngFor="let movie of movies; trackBy: trackByMovieId">
         <a [routerLink]="['/movies', movie.id]"
           class="card movie-card position-relative rounded-3 overflow-hidden text-decoration-none border-0 bg-transparent cursor-pointer">
@@ -61,7 +61,7 @@
             <img *ngIf="posters[movie.id]" [src]="posters[movie.id]" class="w-100 h-100 object-fit-cover rounded-3"
               [alt]="movie.title" style="position: absolute; top: 0; left: 0;">
             <div *ngIf="!posters[movie.id]"
-              class="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-dark text-white p-3 text-center rounded-3 shimmer"
+              class="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-dark text-white p-2 p-md-3 text-center rounded-3 shimmer"
               style="position: absolute; top: 0; left: 0;">
               <i class="bi bi-film fs-1 mb-2 text-secondary"></i>
               <h6 class="mb-0 text-truncate w-100" [title]="movie.title">{{ movie.title }}</h6>

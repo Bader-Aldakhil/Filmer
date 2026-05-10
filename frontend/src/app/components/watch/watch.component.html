@@ -101,10 +101,11 @@
       <iframe
         [src]="embedUrl | trustUrl"
         allowfullscreen
-        allow="autoplay; fullscreen; picture-in-picture"
+        allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
         frameborder="0"
         scrolling="no"
-        referrerpolicy="origin">
+        referrerpolicy="no-referrer"
+        [attr.sandbox]="sandboxConfig">
       </iframe>
     </div>
 
