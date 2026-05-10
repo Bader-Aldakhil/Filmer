@@ -77,3 +77,7 @@ frontend/src/assets/runtime-config.js
 # Docker volumes (managed by docker-compose)
 postgres_data/
 pgadmin_data/
+
+# Local local dev assets
+frontend/ssl/
+frontend/proxy.conf.json

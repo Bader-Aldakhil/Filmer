@@ -59,9 +59,10 @@ public class LibraryController {
             @PathVariable String movieId,
             @RequestParam(required = false) Integer season,
             @RequestParam(required = false) Integer episode,
+            @RequestParam(required = false) String tmdbId,
             HttpSession session) {
         try {
-            PlaybackGrantResponse grant = libraryService.generatePlaybackGrant(movieId, season, episode, session);
+            PlaybackGrantResponse grant = libraryService.generatePlaybackGrant(movieId, season, episode, tmdbId, session);
             return ResponseEntity.ok(ApiResponse.success(grant));
         } catch (SecurityException e) {
             return ResponseEntity.status(401)

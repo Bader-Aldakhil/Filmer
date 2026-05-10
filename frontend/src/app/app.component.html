@@ -1,26 +1,119 @@
 <div class="app-container">
   <header class="app-header">
     <div class="header-content">
-      <h1 routerLink="/">FILMER</h1>
-      <nav class="nav-menu">
+      <h1 routerLink="/" (click)="closeMobileMenu()">FILMER</h1>
+
+      <!-- Desktop Navigation -->
+      <nav class="nav-menu main-nav d-none d-md-flex">
         <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
         <a routerLink="/movies" routerLinkActive="active">Movies</a>
         <a routerLink="/tvshows" routerLinkActive="active">TV Shows</a>
-        <a *ngIf="authState.user()" routerLink="/rentals" routerLinkActive="active">My Rentals</a>
-        <a *ngIf="authState.user()" routerLink="/cart" routerLinkActive="active">Cart</a>
-        <a *ngIf="authState.user()" routerLink="/orders" routerLinkActive="active">Orders</a>
-        <a routerLink="/favorites" routerLinkActive="active">My List</a>
-        <a *ngIf="!authState.user()" routerLink="/auth" routerLinkActive="active">Login</a>
-        <button *ngIf="authState.user()" class="logout-btn" (click)="logout()">Logout</button>
       </nav>
+
+      <nav class="nav-menu user-nav d-none d-md-flex">
+        <a *ngIf="authState.user()" routerLink="/favorites" routerLinkActive="active" class="icon-link" title="My List">
+          <i class="bi bi-card-list"></i>
+        </a>
+        <a *ngIf="authState.user()" routerLink="/cart" routerLinkActive="active" class="icon-link" title="Cart">
+          <i class="bi bi-cart3"></i>
+        </a>
+        
+        <!-- User Dropdown (Hover) -->
+        <div class="user-dropdown-container" *ngIf="authState.user()">
+          <button class="user-dropdown-btn">
+            <i class="bi bi-person-circle"></i>
+            <span class="d-none d-lg-inline ms-2">{{ authState.user()?.firstName }}</span>
+            <i class="bi bi-chevron-down ms-1 fs-xs"></i>
+          </button>
+          <div class="user-dropdown-menu">
+            <a routerLink="/rentals" routerLinkActive="active"><i class="bi bi-play-circle me-2"></i> My Rentals</a>
+            <a routerLink="/orders" routerLinkActive="active"><i class="bi bi-receipt me-2"></i> Orders</a>
+            <hr class="dropdown-divider">
+            <button class="dropdown-item" (click)="logout()"><i class="bi bi-box-arrow-right me-2"></i> Sign Out</button>
+          </div>
+        </div>
+
+        <a *ngIf="!authState.user()" routerLink="/auth" routerLinkActive="active" class="login-btn">Sign In</a>
+      </nav>
+
+      <!-- Mobile Top Actions -->
+      <div class="mobile-top-actions d-md-none">
+        <a *ngIf="authState.user()" routerLink="/cart" routerLinkActive="active" class="mobile-icon" (click)="closeMobileMenu()">
+          <i class="bi bi-cart3"></i>
+        </a>
+        <button class="mobile-menu-toggle" (click)="toggleMobileMenu()">
+          <i class="bi" [ngClass]="isMobileMenuOpen ? 'bi-x-lg' : 'bi-list'"></i>
+        </button>
+      </div>
     </div>
   </header>
+
+  <!-- Mobile Overlay Menu -->
+  <div class="mobile-overlay-menu d-md-none" [class.open]="isMobileMenuOpen">
+    <div class="mobile-menu-content">
+      <div class="user-section" *ngIf="authState.user()">
+        <i class="bi bi-person-circle mobile-avatar"></i>
+        <h3>{{ authState.user()?.firstName }} {{ authState.user()?.lastName }}</h3>
+        <p>{{ authState.user()?.email }}</p>
+      </div>
+      
+      <div class="user-section guest" *ngIf="!authState.user()">
+        <i class="bi bi-person-circle mobile-avatar"></i>
+        <h3>Guest User</h3>
+        <p>Sign in to rent movies</p>
+      </div>
+
+      <nav class="mobile-nav-links">
+        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMobileMenu()"><i class="bi bi-house-door me-3"></i> Home</a>
+        <a routerLink="/movies" routerLinkActive="active" (click)="closeMobileMenu()"><i class="bi bi-film me-3"></i> Movies</a>
+        <a routerLink="/tvshows" routerLinkActive="active" (click)="closeMobileMenu()"><i class="bi bi-tv me-3"></i> TV Shows</a>
+        
+        <ng-container *ngIf="authState.user()">
+          <div class="menu-divider"></div>
+          <a routerLink="/favorites" routerLinkActive="active" (click)="closeMobileMenu()"><i class="bi bi-card-list me-3"></i> My List</a>
+          <a routerLink="/rentals" routerLinkActive="active" (click)="closeMobileMenu()"><i class="bi bi-play-circle me-3"></i> My Rentals</a>
+          <a routerLink="/orders" routerLinkActive="active" (click)="closeMobileMenu()"><i class="bi bi-receipt me-3"></i> Orders</a>
+          <div class="menu-divider"></div>
+          <button class="mobile-logout-btn" (click)="logout()"><i class="bi bi-box-arrow-right me-3"></i> Sign Out</button>
+        </ng-container>
+
+        <ng-container *ngIf="!authState.user()">
+          <div class="menu-divider"></div>
+          <a routerLink="/auth" routerLinkActive="active" (click)="closeMobileMenu()"><i class="bi bi-box-arrow-in-right me-3"></i> Sign In / Register</a>
+        </ng-container>
+      </nav>
+    </div>
+  </div>
 
   <main class="app-content">
     <router-outlet></router-outlet>
   </main>
 
-  <footer class="app-footer">
+  <footer class="app-footer d-none d-md-block">
     <p>&copy; 2026 Filmer Movie Rental System. All rights reserved.</p>
   </footer>
+
+  <!-- Mobile Bottom Navigation Bar -->
+  <nav class="mobile-bottom-nav d-md-none">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMobileMenu()">
+      <i class="bi bi-house-door-fill"></i>
+      <span>Home</span>
+    </a>
+    <a routerLink="/movies" routerLinkActive="active" (click)="closeMobileMenu()">
+      <i class="bi bi-film"></i>
+      <span>Movies</span>
+    </a>
+    <a routerLink="/tvshows" routerLinkActive="active" (click)="closeMobileMenu()">
+      <i class="bi bi-tv"></i>
+      <span>TV</span>
+    </a>
+    <a *ngIf="authState.user()" routerLink="/favorites" routerLinkActive="active" (click)="closeMobileMenu()">
+      <i class="bi bi-collection-play"></i>
+      <span>My List</span>
+    </a>
+    <a *ngIf="!authState.user()" routerLink="/auth" routerLinkActive="active" (click)="closeMobileMenu()">
+      <i class="bi bi-person-fill"></i>
+      <span>Sign In</span>
+    </a>
+  </nav>
 </div>

@@ -45,7 +45,7 @@ export class AuthComponent {
       next: () => {
         this.authState.refreshSession().subscribe(() => {
           this.loading = false;
-          this.router.navigate(['/cart']);
+          this.router.navigate(['/']);
         });
       },
       error: (err) => {

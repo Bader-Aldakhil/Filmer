@@ -46,14 +46,17 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
   embedUrl: string | null = null;
   streamType = 'video/mp4';
   playerStatus: string | null = null;
+  sandboxConfig: string | null = null;
   private hls: any = null;
+  private wt: any = null;
   private loadTimeout: any = null;
 
   // Context metadata
   movieTitle: string | null = null;
   moviePoster: string | null = null;
   episodeDetail: TvEpisodeDetail | null = null;
-  private tmdbTvId: number | null = null;
+  tmdbTvId: number | null = null;
+  tmdbMovieId: number | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -211,7 +214,14 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
       // IMDb ID — use Cinemeta / TMDB find
       this.tmdbService.resolveTmdbFromImdbId(id).subscribe((resolved) => {
         if (resolved) {
-          if (this.isSeries && resolved.mediaType === 'tv') this.tmdbTvId = resolved.tmdbId;
+          if (this.isSeries && resolved.mediaType === 'tv') {
+            this.tmdbTvId = resolved.tmdbId;
+          } else if (!this.isSeries && resolved.mediaType === 'movie') {
+            this.tmdbMovieId = resolved.tmdbId;
+            // Re-load grant now that we have the TMDB ID for Vidking
+            this.loadPlaybackGrant();
+          }
+          
           this.tmdbService.getTmdbMediaDetail(resolved.tmdbId, resolved.mediaType).subscribe((res) => {
             this.movieTitle = res.detail.title;
             this.moviePoster = res.poster;
@@ -252,25 +262,41 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
     const season = this.isSeries ? this.season : undefined;
     const episode = this.isSeries ? this.episode : undefined;
 
-    this.apiService.getPlaybackGrant(this.movieId, season, episode).subscribe({
+    // Use TMDB ID for Vidking support, but keep the original movieId for ownership check
+    let tmdbId: string | undefined = undefined;
+    if (this.isSeries && this.tmdbTvId) {
+      tmdbId = `tmdb-tv-${this.tmdbTvId}`;
+    } else if (!this.isSeries && this.tmdbMovieId) {
+       tmdbId = `tmdb-movie-${this.tmdbMovieId}`;
+    }
+
+    this.apiService.getPlaybackGrant(this.movieId, season, episode, tmdbId).subscribe({
       next: (grantRes) => {
-        this.grantLoading = false;
         const grant = grantRes?.data;
 
-        // Prefer embed URL (VidSrc iframe)
+        // Prefer embed URL
         if (grant?.embedUrl) {
-          this.embedUrl = grant.embedUrl;
-          this.continueWatchingService.saveProgress(this.movieId, !!this.isSeries, this.season, this.episode);
-          
-          // Load episode detail from TMDB if we have a series
-          if (this.isSeries && this.tmdbTvId) {
-            this.tmdbService.getTvEpisodeDetail(this.tmdbTvId, this.season, this.episode).subscribe((detail) => {
-              this.episodeDetail = detail;
-            });
-          }
+          let url = grant.embedUrl;
+
+          const finalizeEmbed = (finalUrl: string) => {
+            this.embedUrl = finalUrl;
+            this.grantLoading = false;
+            this.continueWatchingService.saveProgress(this.movieId, !!this.isSeries, this.season, this.episode);
+            
+            // Load episode detail from TMDB if we have a series
+            if (this.isSeries && this.tmdbTvId) {
+              this.tmdbService.getTvEpisodeDetail(this.tmdbTvId, this.season, this.episode).subscribe((detail) => {
+                this.episodeDetail = detail;
+              });
+            }
+          };
+
+          this.sandboxConfig = (grant.provider === 'p2p' || grant.provider === 'vidking') ? null : 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-top-navigation-by-user-activation allow-modals allow-downloads';
+          finalizeEmbed(url);
           return;
         }
 
+        this.grantLoading = false;
         // Fallback: direct video stream (mp4 / hls)
         const selectedSource = grant?.streamUrl || grant?.fallbackUrl || null;
         if (!selectedSource) {
@@ -357,25 +383,56 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.streamUrl || !this.videoPlayer?.nativeElement) return;
 
     const video = this.videoPlayer.nativeElement;
-    const isHlsSource = this.streamType.toLowerCase().includes('mpegurl') || /\.m3u8(\?|$)/i.test(this.streamUrl);
+    const isTorrent = this.streamType === 'video/torrent' || this.streamUrl.startsWith('magnet:');
 
     this.cleanupPlayer();
+
+    // ── WebTorrent ────────────────────────────────────────────────────────
+    if (isTorrent) {
+      const WebTorrentLib = (window as any).WebTorrent;
+      if (!WebTorrentLib) {
+        this.playerStatus = 'WebTorrent not loaded.';
+        return;
+      }
+
+      this.playerStatus = 'Finding peers…';
+      this.loadTimeout = setTimeout(() => {
+        this.playerStatus = 'Stream timed out — no peers found.';
+        this.sourceNotFound = true;
+        this.streamUrl = null;
+        this.cleanupPlayer();
+      }, 90000);
+
+      this.wt = new WebTorrentLib();
+      this.wt.add(this.streamUrl, (torrent: any) => {
+        // pick the largest file (the video)
+        const file = torrent.files.reduce((a: any, b: any) => a.length > b.length ? a : b);
+        this.playerStatus = 'Buffering…';
+        file.renderTo(video, { autoplay: true });
+
+        video.oncanplay = () => {
+          clearTimeout(this.loadTimeout);
+          this.playerStatus = null;
+        };
+
+        torrent.on('download', () => {
+          const pct = Math.round(torrent.progress * 100);
+          if (this.playerStatus !== null) {
+            this.playerStatus = `Buffering… ${pct}%`;
+          }
+        });
+      });
+      return;
+    }
+
+    // ── Direct MP4 ────────────────────────────────────────────────────────
     this.loadTimeout = setTimeout(() => {
       this.sourceNotFound = true;
       this.error = null;
       this.playerStatus = 'Playback timed out.';
       this.streamUrl = null;
       this.cleanupPlayer();
-    }, 12000);
-
-    // Dynamic import of hls.js (only needed for direct HLS streams, not for VidSrc embed)
-    if (isHlsSource) {
-      // HLS support is currently disabled — real content uses the embed player
-      clearTimeout(this.loadTimeout);
-      this.sourceNotFound = true;
-      this.playerStatus = null;
-      return;
-    }
+    }, 90000);
 
     video.onloadedmetadata = () => {
       clearTimeout(this.loadTimeout);
@@ -399,6 +456,11 @@ export class WatchComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.hls) {
       this.hls.destroy();
       this.hls = null;
+    }
+
+    if (this.wt) {
+      this.wt.destroy();
+      this.wt = null;
     }
 
     if (this.videoPlayer?.nativeElement) {

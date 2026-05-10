@@ -107,7 +107,7 @@ public class LibraryService {
         return response;
     }
 
-    public PlaybackGrantResponse generatePlaybackGrant(String movieId, Integer season, Integer episode, HttpSession session) {
+    public PlaybackGrantResponse generatePlaybackGrant(String movieId, Integer season, Integer episode, String tmdbId, HttpSession session) {
         Long customerId = authService.requireAuthenticatedCustomerId(session);
         if (movieId == null || movieId.trim().isEmpty()) {
             throw new IllegalArgumentException("movieId is required");
@@ -130,7 +130,11 @@ public class LibraryService {
             }
         }
 
-        PlaybackGrantResponse grant = streamingProviderService.generateGrant(safeMovieId, titleType, season, episode);
+        // Use tmdbId if provided by frontend, otherwise use the database movieId
+        String effectiveStreamingId = (tmdbId != null && !tmdbId.trim().isEmpty()) ? tmdbId : safeMovieId;
+        PlaybackGrantResponse grant = streamingProviderService.generateGrant(effectiveStreamingId, titleType, season, episode);
+        // Important: Reset the grant's movieId to the original one so frontend tracking works
+        grant.setMovieId(safeMovieId);
         logStreamGrant(customerId, grant, true, null);
         return grant;
     }
