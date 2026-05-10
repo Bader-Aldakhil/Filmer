@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 public class StreamingProviderService {
 
     private static final String VIDKING_BASE = "https://www.vidking.net/embed";
-    private static final String FALLBACK_BASE = "https://vsrc.su/embed";
+    private static final String FALLBACK_BASE = "https://vidsrc.me/embed";
 
     private final int grantTtlMinutes;
     private final HttpClient httpClient;
