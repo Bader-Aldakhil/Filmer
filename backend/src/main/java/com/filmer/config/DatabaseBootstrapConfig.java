@@ -22,6 +22,7 @@ public class DatabaseBootstrapConfig implements CommandLineRunner {
     @Override
     public void run(String... args) {
         ensureMovieColumns();
+        ensurePerformanceIndexes();
 
         Long movieCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM movies", Long.class);
         if (movieCount != null && movieCount > 0) {
@@ -44,6 +45,32 @@ public class DatabaseBootstrapConfig implements CommandLineRunner {
                     ADD COLUMN IF NOT EXISTS num_votes INT DEFAULT 0,
                     ADD COLUMN IF NOT EXISTS title_type VARCHAR(50)
                 """);
+    }
+
+    /**
+     * Idempotent: creates missing performance indexes on an existing database.
+     * All indexes use CREATE INDEX IF NOT EXISTS so this is safe to run on startup.
+     */
+    private void ensurePerformanceIndexes() {
+        String[] indexes = {
+            "CREATE INDEX IF NOT EXISTS idx_movies_rating     ON movies(rating)",
+            "CREATE INDEX IF NOT EXISTS idx_movies_num_votes  ON movies(num_votes)",
+            "CREATE INDEX IF NOT EXISTS idx_movies_title_type ON movies(title_type)",
+            "CREATE INDEX IF NOT EXISTS idx_movies_title      ON movies(title)",
+            "CREATE INDEX IF NOT EXISTS idx_movies_year       ON movies(year)",
+            "CREATE INDEX IF NOT EXISTS idx_movies_director   ON movies(director)",
+            "CREATE INDEX IF NOT EXISTS idx_sales_customer_movie ON sales(customer_id, movie_id)",
+            "CREATE INDEX IF NOT EXISTS idx_sales_customer    ON sales(customer_id)",
+            "CREATE INDEX IF NOT EXISTS idx_sales_movie       ON sales(movie_id)"
+        };
+        for (String sql : indexes) {
+            try {
+                jdbcTemplate.execute(sql);
+            } catch (Exception ex) {
+                log.warn("Could not create index (may already exist): {}", ex.getMessage());
+            }
+        }
+        log.info("Performance indexes verified.");
     }
 
     private void seedGenres() {

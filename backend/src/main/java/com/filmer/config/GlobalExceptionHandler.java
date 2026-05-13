@@ -15,6 +15,17 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     /**
+     * Handle SecurityException — authentication required.
+     * Returns 401 Unauthorized so the frontend can redirect to login.
+     */
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<ApiErrorResponse> handleSecurityException(SecurityException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ApiErrorResponse.of("UNAUTHORIZED", ex.getMessage()));
+    }
+
+    /**
      * Handle IllegalArgumentException (typically used for validation and not-found cases).
      */
     @ExceptionHandler(IllegalArgumentException.class)

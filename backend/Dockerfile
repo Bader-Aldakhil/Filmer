@@ -12,4 +12,4 @@ FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 COPY --from=builder /app/target/*.jar app.jar
 EXPOSE 8443
-ENTRYPOINT ["sh", "-c", "keytool -genkeypair -alias tomcat -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore /app/keystore.p12 -validity 3650 -storepass ${SSL_PASSWORD} -keypass ${SSL_PASSWORD} -dname 'CN=localhost, OU=Filmer, O=Filmer, L=Riyadh, ST=Riyadh, C=SA' && java -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "rm -f /app/keystore.p12 && keytool -genkeypair -alias tomcat -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore /app/keystore.p12 -validity 3650 -storepass ${SSL_PASSWORD} -keypass ${SSL_PASSWORD} -dname 'CN=localhost, OU=Filmer, O=Filmer, L=Riyadh, ST=Riyadh, C=SA' && java -jar app.jar"]

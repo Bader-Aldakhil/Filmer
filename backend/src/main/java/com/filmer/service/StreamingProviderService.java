@@ -1,18 +1,9 @@
 package com.filmer.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.filmer.dto.response.PlaybackGrantResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.net.URI;
-import java.net.URLEncoder;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Service
@@ -22,14 +13,10 @@ public class StreamingProviderService {
     private static final String FALLBACK_BASE = "https://vidsrc.pro/embed";
 
     private final int grantTtlMinutes;
-    private final HttpClient httpClient;
-    private final ObjectMapper objectMapper;
 
     public StreamingProviderService(
             @Value("${streaming.provider.grant-ttl-minutes:120}") int grantTtlMinutes) {
         this.grantTtlMinutes = Math.max(grantTtlMinutes, 30);
-        this.httpClient  = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
-        this.objectMapper = new ObjectMapper();
     }
 
     public PlaybackGrantResponse generateGrant(

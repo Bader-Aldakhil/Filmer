@@ -55,6 +55,7 @@ interface TmdbDetailResponse {
     overview?: string;
     poster_path?: string | null;
     backdrop_path?: string | null;
+    imdb_id?: string | null;
     external_ids?: {
         imdb_id?: string | null;
     };

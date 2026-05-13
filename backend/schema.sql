@@ -166,6 +166,9 @@ CREATE TABLE watch_progress (
 CREATE INDEX idx_movies_title ON movies(title);
 CREATE INDEX idx_movies_year ON movies(year);
 CREATE INDEX idx_movies_director ON movies(director);
+CREATE INDEX idx_movies_rating ON movies(rating);          -- supports minRating filter
+CREATE INDEX idx_movies_num_votes ON movies(num_votes);    -- supports popularity sort
+CREATE INDEX idx_movies_title_type ON movies(title_type);  -- supports movie/tv filter
 
 -- Stars indexes
 CREATE INDEX idx_stars_name ON stars(name);
@@ -179,6 +182,7 @@ CREATE INDEX idx_customers_last_name ON customers(last_name);
 CREATE INDEX idx_sales_customer ON sales(customer_id);
 CREATE INDEX idx_sales_movie ON sales(movie_id);
 CREATE INDEX idx_sales_date ON sales(sale_date);
+CREATE INDEX idx_sales_customer_movie ON sales(customer_id, movie_id); -- ownership lookups
 
 -- Junction table indexes (for reverse lookups)
 CREATE INDEX idx_sim_movie ON stars_in_movies(movie_id);

@@ -9,6 +9,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,7 @@ public class AuthService {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    @Transactional
     public CustomerSessionResponse login(LoginRequest request, HttpSession session) {
         if (request == null || isBlank(request.getEmail()) || isBlank(request.getPassword())) {
             throw new IllegalArgumentException("Email and password are required");
@@ -55,6 +57,7 @@ public class AuthService {
         return createSession(session, customerId, email, firstName, lastName);
     }
 
+    @Transactional
     public CustomerSessionResponse register(RegisterRequest request, HttpSession session) {
         if (request == null || isBlank(request.getFirstName()) || isBlank(request.getLastName())
                 || isBlank(request.getEmail()) || isBlank(request.getPassword())) {
@@ -95,11 +98,13 @@ public class AuthService {
                 request.getLastName().trim());
     }
 
+    @Transactional
     public void logout(HttpSession session) {
         requireAuthenticatedCustomerId(session);
         session.invalidate();
     }
 
+    @Transactional(readOnly = true)
     public CustomerSessionResponse getSession(HttpSession session) {
         Long customerId = requireAuthenticatedCustomerId(session);
         String email = String.valueOf(session.getAttribute(SESSION_EMAIL));
