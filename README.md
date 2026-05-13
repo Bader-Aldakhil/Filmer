@@ -17,7 +17,7 @@ The project is inspired by the University of California, Irvine course CS122B an
 ### Key Features (Phase 1-7)
 - **Movie Catalog & Search:** Advanced browsing, filtering, and full-text search with pagination.
 - **Authentication & Authorization:** Secure user registration, login, and robust session management.
-- **Access Control:** Route guards and backend session validation for protected pages (Cart, Checkout, Orders, Watch).
+- **Access Control:** Route guards and backend session validation for protected pages (Cart, Checkout, Orders).
 - **Responsive UI:** A polished, fully responsive modern frontend built with Angular.
 - **HTTPS & Security:** Secure data transmission via HTTPS on port 8443 with self-signed SSL certificates.
 - **Performance Optimized:** Sub-500ms response times achieved via database B-tree indexes, connection pooling (HikariCP), and efficient Hibernate querying (read-only transactions).
