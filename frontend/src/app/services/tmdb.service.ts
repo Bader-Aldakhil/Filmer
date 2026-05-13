@@ -55,6 +55,10 @@ interface TmdbDetailResponse {
     overview?: string;
     poster_path?: string | null;
     backdrop_path?: string | null;
+    imdb_id?: string | null;
+    external_ids?: {
+        imdb_id?: string | null;
+    };
 }
 
 interface TmdbExternalIdsResponse {
@@ -318,7 +322,7 @@ export class TmdbService {
     }
 
     getTmdbMediaDetail(id: number, mediaType: 'movie' | 'tv'): Observable<{ detail: MovieDetail; poster: string | null; backdrop: string | null; overview: string | null; castPhotos: Record<string, string> }> {
-        const detailUrl = `${this.baseUrl}/${mediaType}/${id}?api_key=${this.apiKey}`;
+        const detailUrl = `${this.baseUrl}/${mediaType}/${id}?api_key=${this.apiKey}&append_to_response=external_ids`;
         const creditsUrl = `${this.baseUrl}/${mediaType}/${id}/credits?api_key=${this.apiKey}`;
 
         return forkJoin({
@@ -340,6 +344,7 @@ export class TmdbService {
                 return {
                     detail: {
                         id: `${mediaType === 'movie' ? 'tmdb-movie-' : 'tmdb-tv-'}${id}`,
+                        imdbId: detail.imdb_id || detail.external_ids?.imdb_id || undefined,
                         title: detail.title || detail.name || 'Untitled',
                         year: this.getYear(detail.release_date || detail.first_air_date),
                         rating: detail.vote_average ? Number(detail.vote_average.toFixed(1)) : undefined,

@@ -16,6 +16,7 @@ export interface StarSummary {
 
 export interface MovieDetail {
     id: string;
+    imdbId?: string;
     title: string;
     year?: number;
     director?: string;

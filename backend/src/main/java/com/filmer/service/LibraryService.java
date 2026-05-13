@@ -6,6 +6,7 @@ import com.filmer.dto.request.WatchProgressDto;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
 import java.sql.Timestamp;
@@ -28,6 +29,7 @@ public class LibraryService {
         ensureStreamAccessLogTable();
     }
 
+    @Transactional(readOnly = true)
     public List<LibraryItemResponse> listPurchasedTitles(HttpSession session) {
         Long customerId = authService.requireAuthenticatedCustomerId(session);
 
@@ -64,6 +66,7 @@ public class LibraryService {
                 customerId);
     }
 
+    @Transactional(readOnly = true)
     public boolean hasPlaybackAccess(String movieId, HttpSession session) {
         Long customerId = authService.requireAuthenticatedCustomerId(session);
         if (movieId == null || movieId.trim().isEmpty()) {
@@ -78,6 +81,7 @@ public class LibraryService {
         return count != null && count > 0;
     }
 
+    @Transactional(readOnly = true)
     public Map<String, Object> getPlaybackAccessDetails(String movieId, HttpSession session) {
         Long customerId = authService.requireAuthenticatedCustomerId(session);
         if (movieId == null || movieId.trim().isEmpty()) {
@@ -107,6 +111,7 @@ public class LibraryService {
         return response;
     }
 
+    @Transactional
     public PlaybackGrantResponse generatePlaybackGrant(String movieId, Integer season, Integer episode, String tmdbId, HttpSession session) {
         Long customerId = authService.requireAuthenticatedCustomerId(session);
         if (movieId == null || movieId.trim().isEmpty()) {
@@ -177,6 +182,7 @@ public class LibraryService {
                 errorMessage);
     }
 
+    @Transactional
     public void saveWatchProgress(HttpSession session, WatchProgressDto progress) {
         Long customerId = authService.requireAuthenticatedCustomerId(session);
         jdbcTemplate.update("""
@@ -197,6 +203,7 @@ public class LibraryService {
         );
     }
 
+    @Transactional(readOnly = true)
     public List<WatchProgressDto> getAllWatchProgress(HttpSession session) {
         Long customerId = authService.requireAuthenticatedCustomerId(session);
         return jdbcTemplate.query("""

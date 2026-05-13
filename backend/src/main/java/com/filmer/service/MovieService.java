@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.filmer.repository.MovieSpecification;
 import org.springframework.data.jpa.domain.Specification;
@@ -47,6 +48,7 @@ public class MovieService {
      *                   "tvSeries,tvMiniSeries")
      * @return PaginatedResponse containing movie list
      */
+    @Transactional(readOnly = true)
     public PaginatedResponse<MovieListItemResponse> getMovies(int page, int size, String sortBy, String order,
             String title, String type, Long genreId, Double minRating, Integer minVotes) {
         // Validate pagination
@@ -104,6 +106,7 @@ public class MovieService {
      * @param movieId The movie ID
      * @return Optional containing movie details if found
      */
+    @Transactional(readOnly = true)
     public Optional<MovieDetailResponse> getMovieById(String movieId) {
         return movieRepository.findByIdWithGenres(movieId)
                 .map(this::mapToMovieDetail);
@@ -115,6 +118,7 @@ public class MovieService {
      * @param movieId The movie ID
      * @return Optional containing the movie entity if found
      */
+    @Transactional(readOnly = true)
     public Optional<Movie> findById(String movieId) {
         return movieRepository.findById(movieId);
     }
@@ -122,6 +126,7 @@ public class MovieService {
     /**
      * Search movies based on various criteria.
      */
+    @Transactional(readOnly = true)
     public PaginatedResponse<MovieListItemResponse> searchMovies(
             String query, String title, Integer year, Integer yearFrom, Integer yearTo,
             String director, String starName, Long genreId, Integer minVotes,

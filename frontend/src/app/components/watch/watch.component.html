@@ -99,13 +99,14 @@
   <div *ngIf="!loading && !grantLoading && !error && embedUrl" class="player-area px-4 mb-4">
     <div class="video-wrapper">
       <iframe
+        *ngIf="embedUrl"
         [src]="embedUrl | trustUrl"
         allowfullscreen
         allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
         frameborder="0"
         scrolling="no"
         referrerpolicy="no-referrer"
-        [attr.sandbox]="sandboxConfig">
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-modals allow-downloads">
       </iframe>
     </div>
 

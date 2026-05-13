@@ -14,14 +14,14 @@ The project is inspired by the University of California, Irvine course CS122B an
 - Address performance, security, and scalability concerns
 - Follow collaborative development workflows using Git and GitHub
 
-### Key Features
-- Movie browsing and search functionality
-- Movie rental system
-- User authentication and access control
-- Responsive user interface
-- RESTful API backend
-- Secure data handling and HTTPS communication
-- Performance-optimized database queries
+### Key Features (Phase 1-7)
+- **Movie Catalog & Search:** Advanced browsing, filtering, and full-text search with pagination.
+- **Authentication & Authorization:** Secure user registration, login, and robust session management.
+- **Access Control:** Route guards and backend session validation for protected pages (Cart, Checkout, Orders, Watch).
+- **Responsive UI:** A polished, fully responsive modern frontend built with Angular.
+- **HTTPS & Security:** Secure data transmission via HTTPS on port 8443 with self-signed SSL certificates.
+- **Performance Optimized:** Sub-500ms response times achieved via database B-tree indexes, connection pooling (HikariCP), and efficient Hibernate querying (read-only transactions).
+- **Full-Stack Dockerization:** Effortless local development using `docker-compose`.
 
 ## Team Members
 | Name | Student ID |
@@ -118,18 +118,19 @@ cp .env.example .env
 
 Edit `.env` file with your local database configuration.
 
-#### 5. Run Backend
+#### 5. Run Backend (HTTPS - Port 8443)
 ```bash
 cd backend
 mvn spring-boot:run
 ```
 
-#### 6. Run Frontend
+#### 6. Run Frontend (HTTPS - Port 4200)
 ```bash
 cd frontend
 npm install
 npm start
 ```
+Note: The Angular development server will securely proxy `/api` requests to the backend (`https://localhost:8443`) automatically.
 
 ---
 
@@ -158,9 +159,9 @@ Before running the connection test, ensure the following services are running:
    export DB_PASSWORD="filmer_dev_password"
    mvn spring-boot:run
    ```
-   - Backend runs on: `http://localhost:8080`
-   - Health API endpoint: `http://localhost:8080/api/v1/health`
-   - Database connectivity test endpoint: `http://localhost:8080/api/v1/health/db`
+   - Backend runs securely on: `https://localhost:8443`
+   - Health API endpoint: `https://localhost:8443/api/v1/health`
+   - Database connectivity test endpoint: `https://localhost:8443/api/v1/health/db`
 
 3. **Angular Frontend**:
    ```bash
@@ -206,7 +207,7 @@ Once all three services are running:
 
 **Request:**
 ```http
-GET http://localhost:8080/api/v1/health/db
+GET https://localhost:8443/api/v1/health/db
 ```
 
 **Success Response (200 OK):**
@@ -249,7 +250,7 @@ GET http://localhost:8080/api/v1/health/db
 
 3. **Check Backend is Running:**
    ```bash
-   curl http://localhost:8080/api/v1/health
+   curl -k https://localhost:8443/api/v1/health
    # Should return: {"success":true,"data":{"status":"UP","database":"UP",...}}
    ```
 
@@ -257,7 +258,7 @@ GET http://localhost:8080/api/v1/health/db
    - Open browser DevTools (F12)
    - Navigate to the Network tab
    - Click "Test Connection" button
-   - Look for the request to `http://localhost:8080/api/v1/health/db`
+   - Look for the request to `https://localhost:8443/api/v1/health/db`
    - Check the response tab for details
 
 5. **View Backend Logs:**
@@ -448,7 +449,7 @@ npm run e2e
 Notes:
 - `npm test` runs Karma/Jasmine in headless mode for CI-friendly execution.
 - `npm run e2e` runs Playwright smoke/flow/negative scenarios.
-- E2E assumes backend API is available at `http://localhost:8080` (or mock/intercepted by tests where specified).
+- E2E assumes backend API is available via proxy or directly at `https://localhost:8443`.
 - Keep all sensitive config in environment variables; never commit secrets or keys.
 
 ### Backend Unit Tests (Phase 3)
