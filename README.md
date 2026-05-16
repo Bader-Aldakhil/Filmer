@@ -392,6 +392,34 @@ DB_PASSWORD=your_password
 
 The `.env` file is included in `.gitignore` and will not be committed to the repository.
 
+### Required Environment Variables (Phase 6)
+
+Backend runtime (`backend/.env`):
+
+```bash
+DB_URL=jdbc:postgresql://localhost:5432/filmer
+DB_USER=postgres
+DB_PASSWORD=change_me_db_password
+SSL_PASSWORD=change_me_ssl_password
+STREAMING_PROVIDER_SIGNING_SECRET=change_me_streaming_signing_secret
+CORS_ALLOWED_ORIGINS=https://localhost:4200,http://localhost:4200
+```
+
+Docker Compose runtime (repo root `.env`):
+
+```bash
+DB_PASSWORD=change_me_db_password
+SSL_PASSWORD=change_me_ssl_password
+STREAMING_PROVIDER_SIGNING_SECRET=change_me_streaming_signing_secret
+PGADMIN_EMAIL=admin@example.com
+PGADMIN_PASSWORD=change_me_pgadmin_password
+```
+
+Notes:
+- Use `backend/.env.example` and `.env.example` as templates.
+- Never commit `.env` files, credentials, API keys, or private certificates.
+- Do not use placeholder values in production.
+
 ## Development Workflow
 
 ### Branching Strategy
@@ -490,6 +518,45 @@ mvn test -Dtest="GenreServiceTest,MovieServiceTest,HealthControllerTest,GenreCon
 - Tests may fail meaningfully until Phase 4 implementation is complete
 - Tests use `@WebMvcTest` for controller slices and `@ExtendWith(MockitoExtension.class)` for services
 - No real database connection is required to run unit tests
+
+## Phase 6 Compliance Summary
+
+### 1) Performance Improvements
+- PostgreSQL indexes are defined in `backend/schema.sql` and verified on backend startup.
+- Pagination is enforced on list/search endpoints with bounded page sizes.
+- Added integration smoke test for endpoint performance:
+  - `Phase6SecurityAndPerformanceIntegrationTest#moviesEndpointPerformanceSmokeTest`
+  - Target: common movie listing request should complete under ~500ms in local test profile.
+
+### 2) HTTPS
+- Backend runs with SSL enabled (`server.ssl.enabled=true`) on `8443`.
+- Session cookies are configured with `HttpOnly` and `Secure`.
+- SSL keystore password is required from environment variable (`SSL_PASSWORD`).
+
+### 3) Authentication and Access Control
+- Session-based authentication is implemented for login/register/logout/session checks.
+- Protected backend endpoints require authenticated session (cart, checkout, orders, library).
+- Angular route guard (`authGuard`) blocks direct URL navigation to protected frontend pages.
+- Unauthenticated protected API access is covered by integration tests.
+
+### 4) Security Hardening
+- Passwords are hashed with BCrypt (no plaintext storage).
+- Sensitive configuration is loaded via environment variables.
+- CORS allowed origins are configurable with `CORS_ALLOWED_ORIGINS` (no hardcoded production wildcard).
+- API error handling avoids leaking stack traces in HTTP responses.
+
+### 5) Testing
+- Backend: unit + integration + contract tests.
+- Frontend: unit + E2E tests.
+- Phase 6 integration coverage includes:
+  - Unauthorized access rejection on protected endpoints.
+  - Performance smoke check for movie listing response time.
+
+### 6) GitHub / PR Workflow Rules
+- Work must be submitted through Pull Requests only.
+- Do not push directly to `main`/`master`.
+- CI checks (lint/test/format workflows in `.github/workflows/`) must pass before merge.
+- Require reviewer approvals according to course repository policy.
 
 ## Academic Integrity
 

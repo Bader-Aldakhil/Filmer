@@ -4,6 +4,8 @@ import com.filmer.dto.response.LibraryItemResponse;
 import com.filmer.dto.response.PlaybackGrantResponse;
 import com.filmer.dto.request.WatchProgressDto;
 import jakarta.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +19,7 @@ import java.util.Map;
 
 @Service
 public class LibraryService {
+    private static final Logger log = LoggerFactory.getLogger(LibraryService.class);
 
     private final JdbcTemplate jdbcTemplate;
     private final AuthService authService;
@@ -140,7 +143,12 @@ public class LibraryService {
         PlaybackGrantResponse grant = streamingProviderService.generateGrant(effectiveStreamingId, titleType, season, episode);
         // Important: Reset the grant's movieId to the original one so frontend tracking works
         grant.setMovieId(safeMovieId);
-        logStreamGrant(customerId, grant, true, null);
+        try {
+            // Logging should never break playback.
+            logStreamGrant(customerId, grant, true, null);
+        } catch (RuntimeException ex) {
+            log.warn("Failed to persist stream access log for movieId={}: {}", safeMovieId, ex.getMessage());
+        }
         return grant;
     }
 

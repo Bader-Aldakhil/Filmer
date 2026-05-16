@@ -1,6 +1,7 @@
 package com.filmer.config;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -12,15 +13,18 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
 
+    @Value("${CORS_ALLOWED_ORIGINS:https://localhost:4200,http://localhost:4200}")
+    private String allowedOrigins;
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
+        String[] origins = allowedOrigins.split(",");
+        for (int i = 0; i < origins.length; i++) {
+            origins[i] = origins[i].trim();
+        }
+
         registry.addMapping("/api/**")
-                .allowedOrigins(
-                    "https://localhost:4200",     // Angular dev server with SSL
-                    "http://localhost:4200",      // Angular dev server
-                    "http://127.0.0.1:4200",      // Alternative localhost
-                    "http://localhost:3000"       // Alternative port if needed
-                )
+                .allowedOrigins(origins)
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                 .allowedHeaders("*")
                 .allowCredentials(true)
